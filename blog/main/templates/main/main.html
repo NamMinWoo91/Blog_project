@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Blog</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to My Blog</h1>
+        {% comment %} <div class="post"> 
+            <div class="post-title">
+                <a href="{% url 'post_detail' post.id %}">첫 번째 블로그 포스트 제목</a>
+            </div>
+            <div class="post-excerpt">
+                이곳에 첫 번째 포스트의 간략한 내용을 표시합니다.
+            </div>
+        </div>
+        <div class="post">
+            <div class="post-title">
+                <a href="{% url 'post_detail' post.id %}">두 번째 블로그 포스트 제목</a>
+            </div>
+            <div class="post-excerpt">
+                이곳에 두 번째 포스트의 간략한 내용을 표시합니다.
+            </div>
+        </div>
+        더 많은 포스트를 여기에 추가할 수 있습니다.
+        {% endcomment %} 
+    </div>
+</body>
+</html>
