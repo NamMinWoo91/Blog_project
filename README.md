@@ -3,6 +3,7 @@
 
 
 # WBS
+```mermaid
 gantt
     title Django 블로그 프로젝트 WBS (2024년 8월 26일 - 2024년 8월 30일)
     dateFormat  YYYY-MM-DD
@@ -36,7 +37,7 @@ gantt
     댓글 기능 구현               :done, d20, 2024-08-30, 0.5d
     부가 기능 구현               :done, d21, 2024-08-30, 0.5d
     배포 및 AI 기능 추가          :done, d22, 2024-08-30, 0.5d
-
+```
 
 # ERD
 ![alt text](image.png)
