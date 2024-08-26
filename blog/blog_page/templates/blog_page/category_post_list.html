@@ -1,0 +1,16 @@
+<!-- blog_page/templates/blog_page/category_post_list.html -->
+{% extends 'main/main.html' %}
+
+{% block content %}
+<h1>카테고리: {{ category.name }}</h1>
+
+{% for post in posts %}
+    <div class="post">
+        <h2><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h2>
+        <p>{{ post.content|slice:":100" }}...</p>
+        <p>작성일: {{ post.created_at }}</p>
+    </div>
+{% empty %}
+    <p>이 카테고리에는 포스트가 없습니다.</p>
+{% endfor %}
+{% endblock %}

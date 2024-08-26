@@ -22,4 +22,5 @@ urlpatterns = [
     path("", include("main.urls")),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),  # accounts URL 추가
+    path("blog/", include("blog_page.urls")),
 ]
