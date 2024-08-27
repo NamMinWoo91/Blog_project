@@ -1,11 +1,12 @@
-{% extends 'blog_page/base.html' %}
+{% extends 'base.html' %}
+
+{% block title %}Categories{% endblock %}
+
 {% block content %}
-    <h1>카테고리 목록</h1>
+    <h2>Categories</h2>
     <ul>
         {% for category in categories %}
-        <li>
-            <a href="{% url 'category_post_list' category.slug %}">{{ category.name }}</a>
-        </li>
+            <li><a href="{{ category.get_absolute_url }}">{{ category.name }}</a></li>
         {% endfor %}
     </ul>
 {% endblock %}

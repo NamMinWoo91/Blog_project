@@ -1,28 +1,35 @@
 from django.urls import path
 from .views import (
-    PostListView,
-    PostDetailView,
-    CategoryPostListView,
-    CategoryListView,
-    TagPostListView,
-    add_comment,
+    PostList,
+    PostDetail,
+    PostCreate,
+    PostUpdate,
+    delete_comment,
+    new_comment,
+    CommentUpdate,
+    category_page,
+    tag_page,
 )
 
+app_name = "blog_page"
+
 urlpatterns = [
-    path("", PostListView.as_view(), name="post_list"),  # 블로그 포스트 목록 페이지
-    path(
-        "post/<int:pk>/", PostDetailView.as_view(), name="post_detail"
-    ),  # 블로그 포스트 상세 페이지
-    path(
-        "category/<slug:slug>/",
-        CategoryPostListView.as_view(),
-        name="category_post_list",
-    ),  # 카테고리별 포스트 목록
-    path(
-        "tag/<slug:slug>/", TagPostListView.as_view(), name="tag_post_list"
-    ),  # 태그별 포스트 목록
-    path("post/<int:post_id>/comment/", add_comment, name="add_comment"),  # 댓글 추가
-    path(
-        "categories/", CategoryListView.as_view(), name="category_list"
-    ),  # 카테고리 목록 페이지 추가
+    # Home page showing the list of posts
+    path("", PostList.as_view(), name="post_list"),
+    # Detailed view of a single post
+    path("post/<int:pk>/", PostDetail.as_view(), name="post_detail"),
+    # Page for creating a new post
+    path("post/new/", PostCreate.as_view(), name="post_create"),
+    # Page for updating an existing post
+    path("post/<int:pk>/edit/", PostUpdate.as_view(), name="post_update"),
+    # Page for creating a new comment on a post
+    path("post/<int:pk>/comment/", new_comment, name="new_comment"),
+    # Page for updating an existing comment
+    path("comment/<int:pk>/edit/", CommentUpdate.as_view(), name="comment_update"),
+    # Page for deleting a comment
+    path("comment/<int:pk>/delete/", delete_comment, name="delete_comment"),
+    # Page to filter posts by category
+    path("category/<slug:slug>/", category_page, name="category_page"),
+    # Page to filter posts by tag
+    path("tag/<slug:slug>/", tag_page, name="tag_page"),
 ]

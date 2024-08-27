@@ -1,21 +1,15 @@
 {% extends 'base.html' %}
+
+{% block title %}Blog Posts{% endblock %}
+
 {% block content %}
-    <h1>블로그 포스트 목록</h1>
+    <h2>Blog Posts</h2>
     <ul>
         {% for post in posts %}
-        <li>
-            <a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a>
-            <p>{{ post.created_at }}</p>
-        </li>
+            <li>
+                <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                <p>by {{ post.author }} on {{ post.created_at }}</p>
+            </li>
         {% endfor %}
     </ul>
-    <div>
-        <span>페이지: {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-        <div>
-        <span>{% if page_obj.has_previous %}<a href="?page=1">처음</a>{% endif %}</span>
-        <span>{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">이전</a>{% endif %}</span>
-        <span>{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">다음</a>{% endif %}</span>
-        <span>{% if page_obj.has_next %}<a href="?page={{ page_obj.paginator.num_pages }}">마지막</a>{% endif %}</span>
-        </div>
-    </div>
 {% endblock %}
