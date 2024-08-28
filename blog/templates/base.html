@@ -4,29 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}My Blog{% endblock %}</title>
+    <title>{% block title %}베이스 HTML 입니다
+{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
-    <header>
-        <h1><a href="{% url 'blog_page:post_list' %}">홈 화면</a></h1>
-        <nav>
-            <ul>
-                <li><a href="{% url 'blog_page:post_list' %}">구분</a></li>
-                <li><a href="{% url 'blog_page:category_page' slug='some-category-slug' %}">Categories</a></li>
-                <li><a href="{% url 'blog_page:tag_page' slug='some-tag-slug' %}">Tags</a></li>
-            </ul>
-        </nav>
-    </header>
+        <div class="main-page-content">
+            <h2>환영합니다!</h2>
+            <p>여기는 블로그 메인 페이지입니다.</p>
+            <!-- 블로그 입장하기 버튼 -->
+            <a href="{% url 'blog_page:post_list' %}">
+                <button type="button">블로그 입장하기</button>
+            </a>
+        </div>
     
-    <main>
-        {% block content %}
-        <!-- Page-specific content goes here -->
-        {% endblock %}
-    </main>
-    
-    <footer>
-        <p>&copy; 2024 My Blog. All rights reserved.</p>
-    </footer>
 </body>
 </html>

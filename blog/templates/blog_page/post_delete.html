@@ -1,0 +1,12 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>삭제하시겠습니까? "{{ object.title }}"?</h2>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">네 삭제할게요</button>
+        <!-- "아니요" 버튼 -->
+        <button type="button" onclick="window.location.href='{% url 'blog_page:post_list' %}'">아니요</button>
+    </form>
+{% endblock %}

@@ -4,6 +4,7 @@ from .views import (
     PostDetail,
     PostCreate,
     PostUpdate,
+    PostDelete,
     delete_comment,
     new_comment,
     CommentUpdate,
@@ -17,13 +18,14 @@ urlpatterns = [
     # Home page showing the list of posts
     path("", PostList.as_view(), name="post_list"),
     # Detailed view of a single post
-    path("post/<int:pk>/", PostDetail.as_view(), name="post_detail"),
+    path("<int:pk>/", PostDetail.as_view(), name="post_detail"),
     # Page for creating a new post
-    path("post/new/", PostCreate.as_view(), name="post_create"),
+    path("write/", PostCreate.as_view(), name="post_create"),
     # Page for updating an existing post
-    path("post/<int:pk>/edit/", PostUpdate.as_view(), name="post_update"),
+    path("<int:pk>/edit/", PostUpdate.as_view(), name="post_edit"),
     # Page for creating a new comment on a post
-    path("post/<int:pk>/comment/", new_comment, name="new_comment"),
+    path("<int:pk>/delete/", PostDelete.as_view(), name="post_delete"),
+    path("<int:pk>/comment/", new_comment, name="new_comment"),
     # Page for updating an existing comment
     path("comment/<int:pk>/edit/", CommentUpdate.as_view(), name="comment_update"),
     # Page for deleting a comment

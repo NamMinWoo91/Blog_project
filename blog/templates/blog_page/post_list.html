@@ -1,15 +1,40 @@
-{% extends 'base.html' %}
-
-{% block title %}Blog Posts{% endblock %}
-
-{% block content %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Blog Posts</title>
+</head>
+<body>
     <h2>Blog Posts</h2>
+
+    <!-- 글 작성 버튼 추가 -->
+    <a href="{% url 'blog_page:post_create' %}">
+        <button type="button">글 작성하기</button>
+    </a>
+
+    <form method="GET" action="">
+        <input type="text" name="q" value="{{ search_keyword }}" placeholder="검색어를 입력하세요">
+        <button type="submit">검색</button>
+    </form>
+
     <ul>
         {% for post in posts %}
             <li>
                 <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
                 <p>by {{ post.author }} on {{ post.created_at }}</p>
             </li>
+        {% empty %}
+            <li>게시글이 없습니다.</li>
         {% endfor %}
     </ul>
-{% endblock %}
+
+    <h3>카테고리 목록</h3>
+    <ul>
+        {% for category in category_list %}
+            <li>{{ category.name }} ({{ category.post_set.count }})</li>
+        {% endfor %}
+    </ul>
+    
+    <p>카테고리가 없는 게시글 수: {{ no_category_post_count }}</p>
+</body>
+</html>

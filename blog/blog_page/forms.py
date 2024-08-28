@@ -1,15 +1,26 @@
 from django import forms
-from .models import Comment
+from .models import Post, Category, Tag, Comment
+
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ["title", "content", "head_image", "file_upload", "category", "tags"]
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ["name", "slug", "is_public"]
+
+
+class TagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ["name", "slug", "is_public"]
 
 
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ["content"]  # 댓글 작성에 필요한 필드만 포함
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["content"].widget = forms.Textarea(
-            attrs={"rows": 4, "placeholder": "댓글을 작성하세요..."}
-        )
-        self.fields["content"].label = "댓글 내용"
+        fields = ["content"]
