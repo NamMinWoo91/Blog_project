@@ -2,38 +2,47 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Blog Posts</title>
+    <title>Blog Search Results</title>
 </head>
 <body>
-    <h2>Blog Posts</h2>
+    <h2>Search Results</h2>
 
-    <!-- 글 작성 버튼 추가 -->
+    <!-- 글 작성 버튼 -->
     <a href="{% url 'blog_page:post_create' %}">
         <button type="button">글 작성하기</button>
     </a>
 
-    <form method="GET" action="">
+    <!-- 검색 폼 -->
+    <form method="GET" action="{% url 'search' tag=tag %}">
         <input type="text" name="q" value="{{ search_keyword }}" placeholder="검색어를 입력하세요">
         <label for="search_by">검색 범주:</label>
         <select name="search_by" id="search_by">
             <option value="title" {% if search_by == 'title' %}selected{% endif %}>글 제목</option>
             <option value="category" {% if search_by == 'category' %}selected{% endif %}>카테고리</option>
-            <!-- 필요한 다른 검색 기준을 여기에 추가할 수 있습니다 -->
         </select>
         <button type="submit">검색</button>
     </form>
 
+    <!-- 검색 결과 리스트 -->
     <ul>
-        {% for post in posts %}
+        {% for post in post_list %}
             <li>
                 <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
                 <p>by {{ post.author }} on {{ post.created_at }}</p>
+                <p>카테고리: {{ post.category.name if post.category else '없음' }}</p>
+                <p>태그: {{ post.tags.all|join:", " }}</p>
             </li>
         {% empty %}
-            <li>게시글이 없습니다.</li>
+            <li>검색 결과가 없습니다.</li>
         {% endfor %}
     </ul>
 
+    <!-- 검색된 태그 정보 -->
+    {% if tag %}
+        <h3>검색된 태그: {{ tag }}</h3>
+    {% endif %}
+
+    <!-- 카테고리 목록 -->
     <h3>카테고리 목록</h3>
     <ul>
         {% for category in category_list %}

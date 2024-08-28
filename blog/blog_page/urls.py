@@ -5,6 +5,7 @@ from .views import (
     PostCreate,
     PostUpdate,
     PostDelete,
+    PostSearchView,
     delete_comment,
     new_comment,
     CommentUpdate,
@@ -22,14 +23,15 @@ urlpatterns = [
     # Page for creating a new post
     path("write/", PostCreate.as_view(), name="post_create"),
     # Page for updating an existing post
-    path("<int:pk>/edit/", PostUpdate.as_view(), name="post_edit"),
+    path("/edit/<int:pk>", PostUpdate.as_view(), name="post_edit"),
     # Page for creating a new comment on a post
-    path("<int:pk>/delete/", PostDelete.as_view(), name="post_delete"),
-    path("<int:pk>/comment/", new_comment, name="new_comment"),
+    path("delete/<int:pk>", PostDelete.as_view(), name="post_delete"),
+    path("search/<int:pk>", PostSearchView.as_view(), name='search'),
+    path("<int:pk>/comment", new_comment, name="new_comment"),
     # Page for updating an existing comment
-    path("comment/<int:pk>/edit/", CommentUpdate.as_view(), name="comment_update"),
+    path("/edit/comment/<int:pk>", CommentUpdate.as_view(), name="comment_update"),
     # Page for deleting a comment
-    path("comment/<int:pk>/delete/", delete_comment, name="delete_comment"),
+    path("/delete/comment/<int:pk>", delete_comment, name="delete_comment"),
     # Page to filter posts by category
     path("category/<slug:slug>/", category_page, name="category_page"),
     # Page to filter posts by tag

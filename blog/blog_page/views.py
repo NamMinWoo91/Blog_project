@@ -13,6 +13,9 @@ from .forms import CommentForm
 from django.urls import reverse_lazy
 from django.utils.text import slugify
 from django.db.models import Q
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+
 
 
 class PostList(ListView):
@@ -50,11 +53,19 @@ class PostDetail(DetailView):
     model = Post
     template_name = "blog_page/post_detail.html"
 
+    # 조회수 증가 로직 추가
+    def get_object(self, queryset=None):
+        post = super().get_object(queryset)
+        post.views_count += 1  # 조회수 1 증가
+        post.save(update_fields=["views_count"])  # 조회수 필드만 업데이트
+        return post
+
     def get_context_data(self, **kwargs):
         context = super(PostDetail, self).get_context_data(**kwargs)
         context["categories"] = Category.objects.all().order_by("-name")
         context["no_category_post_count"] = Post.objects.filter(category=None).count()
         context["comment_form"] = CommentForm
+        context["current_user"] = self.request.user
         return context
 
 
@@ -155,7 +166,53 @@ class PostDelete(DeleteView):
     model = Post
     template_name = "blog_page/post_delete.html"  # 삭제 확인용 템플릿
     success_url = reverse_lazy("blog_page:post_list")  # 삭제 성공 후 리다이렉트할 URL
+    def dispatch(self, request, *args, **kwargs):
+        post = self.get_object()
+        if post.author != request.user:
+            messages.error(request, "You do not have permission to delete this post.")
+            return HttpResponseRedirect(self.success_url)
+        return super().dispatch(request, *args, **kwargs)
 
+class PostSearchView(ListView):
+    model = Post
+    template_name = "blog_page/post_list.html"  # 사용할 템플릿 경로
+    context_object_name = "post_list"  # 템플릿에서 사용할 객체 이름 설정
+    paginate_by = 10  # 페이지네이션을 사용할 경우 페이지당 표시할 포스트 수
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        tag_slug = self.kwargs.get("tag", "")
+        search_keyword = self.request.GET.get("q", "")
+        search_by = self.request.GET.get("search_by", "title")
+
+        # 기본 필터링: 태그에 따른 필터링
+        if tag_slug:
+            queryset = queryset.filter(tags__slug=tag_slug)
+
+        # 검색어 필터링
+        if search_keyword:
+            if search_by == "title":
+                queryset = queryset.filter(title__icontains=search_keyword)
+            elif search_by == "category":
+                queryset = queryset.filter(category__name__icontains=search_keyword)
+            else:
+                # 모든 필드에 대해 검색 (제목, 내용, 태그)
+                queryset = queryset.filter(
+                    Q(title__icontains=search_keyword) |
+                    Q(content__icontains=search_keyword) |
+                    Q(tags__name__icontains=search_keyword)
+                ).distinct()
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["category_list"] = Category.objects.all().order_by("-name")
+        context["no_category_post_count"] = Post.objects.filter(category=None).count()
+        context["search_keyword"] = self.request.GET.get("q", "")
+        context["search_by"] = self.request.GET.get("search_by", "title")
+        context["tag"] = self.kwargs.get("tag", "")
+        return context
 
 class CommentUpdate(LoginRequiredMixin, UpdateView):
     model = Comment

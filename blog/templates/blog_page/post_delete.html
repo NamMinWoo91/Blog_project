@@ -1,8 +1,17 @@
-
 {% extends 'base.html' %}
 
 {% block content %}
     <h2>삭제하시겠습니까? "{{ object.title }}"?</h2>
+
+    <!-- Django messages를 사용하여 경고 메시지 표시 -->
+    {% if messages %}
+        {% for message in messages %}
+            <script>
+                alert("{{ message }}");
+            </script>
+        {% endfor %}
+    {% endif %}
+
     <form method="post">
         {% csrf_token %}
         <button type="submit">네 삭제할게요</button>

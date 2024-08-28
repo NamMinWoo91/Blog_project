@@ -6,5 +6,5 @@ from . import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", views.home, name="main_page"),  # 여기가 홈 페이지
+    path('', views.home, name='home'),  # 여기가 홈 페이지
 ]
