@@ -1,6 +1,11 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
+from django.contrib.auth.forms import (
+    UserCreationForm,
+    AuthenticationForm,
+    UserChangeForm,
+)
 from .models import CustomUser
+
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)  # 이메일 필드 추가
@@ -24,8 +29,10 @@ class CustomUserCreationForm(UserCreationForm):
             raise forms.ValidationError("이 이메일은 이미 사용 중입니다.")
         return email
 
+
 class CustomAuthenticationForm(AuthenticationForm):
     pass
+
 
 class CustomUserChangeForm(UserChangeForm):
     email = forms.EmailField(required=True)  # 이메일 필드 추가
@@ -40,6 +47,14 @@ class CustomUserChangeForm(UserChangeForm):
             "nickname",
             "profile_image",
         )
+        help_texts = {
+            "password": "비밀번호를 변경하려면 새 비밀번호를 입력하세요.",
+        }
+        error_messages = {
+            "password": {
+                "required": "비밀번호를 입력하지 않으면 변경할 수 없습니다.",
+            },
+        }
 
     def clean_email(self):
         email = self.cleaned_data.get("email")

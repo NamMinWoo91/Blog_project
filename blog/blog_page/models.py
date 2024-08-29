@@ -1,4 +1,5 @@
 from django.db import models
+from accounts.models import CustomUser
 
 # from django.contrib.auth.models import User
 
@@ -20,6 +21,7 @@ class Post(models.Model):
 
     tags = models.ManyToManyField("Tag", blank=True)
     views_count = models.PositiveIntegerField(default=0)
+
     def __str__(self):
         return f"[{self.pk}]{self.title} :: {self.author}"
 
@@ -70,11 +72,13 @@ class Tag(models.Model):
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    # author = models.ForeignKey(User, on_delete=models.CASCADE)
-    author = models.ForeignKey("accounts.CustomUser", on_delete=models.CASCADE)
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    parent = models.ForeignKey(
+        "self", null=True, blank=True, related_name="replies", on_delete=models.CASCADE
+    )  # 대댓글을 위한 부모 댓글 참조
 
     def __str__(self):
         return f"[{self.post}] {self.content} :: {self.author}"

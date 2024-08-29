@@ -1,5 +1,5 @@
-from django.http.response import HttpResponse
-from django.shortcuts import render, redirect
+from django.http.response import HttpResponse, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic import (
     ListView,
     DetailView,
@@ -15,7 +15,6 @@ from django.utils.text import slugify
 from django.db.models import Q
 from django.contrib import messages
 from django.http import HttpResponseRedirect
-
 
 
 class PostList(ListView):
@@ -126,52 +125,52 @@ class PostCreate(LoginRequiredMixin, CreateView):
 class PostUpdate(LoginRequiredMixin, UpdateView):
     model = Post
     fields = ["title", "content", "head_image", "file_upload", "category", "tags"]
-    template_name = "blog_page/post_edit.html"  # 템플릿 경로 설정
+    template_name = "blog_page/post_edit.html"
 
     def form_valid(self, form):
-        current_user = self.request.user
-        if current_user.is_authenticated:
-            form.instance.author = current_user
-            return super(PostUpdate, self).form_valid(form)
-        else:
-            return redirect("/blog/")
+        return super().form_valid(form)
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            post = self.get_object()
-            if post.author == request.user:
-                return super().dispatch(request, *args, **kwargs)
-            else:
-                return HttpResponse("You are not allowed to update this post")
+        if not request.user.is_authenticated:
+            return redirect("login_url")  # 로그인 URL로 리다이렉트
+        post = self.get_object()
+        if post.author != request.user:
+            return HttpResponseForbidden("You are not allowed to update this post")
         return super().dispatch(request, *args, **kwargs)
 
 
-def new_comment(request, pk):
+def new_comment(request, pk, parent_comment_id=None):
+    post = get_object_or_404(Post, pk=pk)
     if request.user.is_authenticated:
-        post = Post.objects.get(pk=pk)
         if request.method == "POST":
             form = CommentForm(request.POST)
             if form.is_valid():
                 comment = form.save(commit=False)
                 comment.post = post
                 comment.author = request.user
+                if parent_comment_id:
+                    parent_comment = get_object_or_404(Comment, pk=parent_comment_id)
+                    comment.parent = parent_comment  # 대댓글의 부모 댓글 지정
                 comment.save()
                 return redirect(comment.get_absolute_url())
         else:
             form = CommentForm()
         return render(request, "blog_page/comment_form.html", {"form": form})
+    return redirect("login_url")  # 로그인 URL로 리다이렉트
 
 
 class PostDelete(DeleteView):
     model = Post
     template_name = "blog_page/post_delete.html"  # 삭제 확인용 템플릿
     success_url = reverse_lazy("blog_page:post_list")  # 삭제 성공 후 리다이렉트할 URL
+
     def dispatch(self, request, *args, **kwargs):
         post = self.get_object()
         if post.author != request.user:
             messages.error(request, "You do not have permission to delete this post.")
             return HttpResponseRedirect(self.success_url)
         return super().dispatch(request, *args, **kwargs)
+
 
 class PostSearchView(ListView):
     model = Post
@@ -198,9 +197,9 @@ class PostSearchView(ListView):
             else:
                 # 모든 필드에 대해 검색 (제목, 내용, 태그)
                 queryset = queryset.filter(
-                    Q(title__icontains=search_keyword) |
-                    Q(content__icontains=search_keyword) |
-                    Q(tags__name__icontains=search_keyword)
+                    Q(title__icontains=search_keyword)
+                    | Q(content__icontains=search_keyword)
+                    | Q(tags__name__icontains=search_keyword)
                 ).distinct()
 
         return queryset
@@ -214,37 +213,30 @@ class PostSearchView(ListView):
         context["tag"] = self.kwargs.get("tag", "")
         return context
 
+
 class CommentUpdate(LoginRequiredMixin, UpdateView):
     model = Comment
     form_class = CommentForm
-    template_name = "blog_page/comment_form.html"  # 템플릿 경로 설정
+    template_name = "blog_page/comment_form.html"
 
     def form_valid(self, form):
-        current_user = self.request.user
-        if current_user.is_authenticated:
-            form.instance.author = current_user
-            return super(CommentUpdate, self).form_valid(form)
-        else:
-            return redirect("/blog/")
+        form.instance.author = self.request.user
+        return super(CommentUpdate, self).form_valid(form)
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            comment = self.get_object()
-            if comment.author == request.user:
-                return super().dispatch(request, *args, **kwargs)
-            else:
-                return HttpResponse("You are not allowed to update this comment")
-        return super().dispatch(request, *args, **kwargs)
+        comment = self.get_object()
+        if request.user.is_authenticated and comment.author == request.user:
+            return super(CommentUpdate, self).dispatch(request, *args, **kwargs)
+        return HttpResponseForbidden("You are not allowed to update this comment")
 
 
 def delete_comment(request, pk):
     if request.user.is_authenticated:
-        comment = Comment.objects.get(pk=pk)
+        comment = get_object_or_404(Comment, pk=pk)
         if comment.author == request.user:
             comment.delete()
             return redirect(comment.post.get_absolute_url())
-        else:
-            return HttpResponse("You are not allowed to delete this comment")
+        return HttpResponseForbidden("You are not allowed to delete this comment")
     return redirect("/blog/")
 
 

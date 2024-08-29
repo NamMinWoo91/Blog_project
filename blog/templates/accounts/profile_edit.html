@@ -12,12 +12,38 @@
         <h1>프로필 수정</h1>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form.as_p }}
+            
+            <label for="username">사용자 이름</label>
+            <div>{{ form.username }}</div>
+            <div>{{ form.username.errors }}</div>
+
+            <label for="email">이메일</label>
+            <div>{{ form.email }}</div>
+            <div>{{ form.email.errors }}</div>
+
+            <label for="nickname">닉네임</label>
+            <div>{{ form.nickname }}</div>
+            <div>{{ form.nickname.errors }}</div>
+
+            <label for="profile_image">프로필 이미지</label>
+            <div>{{ form.profile_image }}</div>
+            <div>{{ form.profile_image.errors }}</div>
+
+            <label for="password">비밀번호 변경</label>
+            <div>
+                <div>
+                    원본 비밀번호는 저장되지 않으므로, 해당 사용자의 비밀번호를 확인할 수 없습니다. 
+                    <a href="{% url 'accounts:password_change' %}">비밀번호 변경</a>을 사용하여 비밀번호를 변경할 수 있습니다.
+                </div>
+            </div>
+
             <button type="submit">프로필 수정</button>
         </form>
         <div>
-            <a href="{% url 'home' %}">취소</a>
+            <button onclick="location.href='{% url 'home' %}'">취소</button>
         </div>
     </div>
 </body>
 </html>
+
+
