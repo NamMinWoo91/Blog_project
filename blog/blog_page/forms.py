@@ -3,20 +3,21 @@ from .models import Post, Category, Tag, Comment
 
 
 class PostForm(forms.ModelForm):
+    tags = forms.CharField(required=False, help_text="쉼표로 구분하여 입력하세요")
+
     class Meta:
         model = Post
-        fields = ["title", "content", "head_image", "file_upload", "category", "tags"]
+        fields = ["title", "content", "head_image", "file_upload", "category"]
         widgets = {
             "content": forms.Textarea(attrs={"rows": 5, "cols": 20}),
             "title": forms.TextInput(attrs={"placeholder": "제목을 입력하세요"}),
             "head_image": forms.ClearableFileInput(attrs={"multiple": False}),
         }
 
-    def clean_title(self):
-        title = self.cleaned_data.get("title")
-        if not title:
-            raise forms.ValidationError("제목을 입력해야 합니다.")
-        return title
+    def clean_tags(self):
+        tag_names = self.cleaned_data.get("tags", "")
+        tag_list = [name.strip() for name in tag_names.split(",") if name.strip()]
+        return tag_list
 
 
 class CategoryForm(forms.ModelForm):

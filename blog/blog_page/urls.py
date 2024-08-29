@@ -34,11 +34,12 @@ urlpatterns = [
     path("edit/comment/<int:pk>/", CommentUpdate.as_view(), name="comment_update"),
     # Page for deleting a comment
     path("delete/comment/<int:pk>/", delete_comment, name="delete_comment"),
+    # Page for replying to a comment (대댓글)
     path(
         "<int:pk>/comment/<int:parent_comment_id>/", new_comment, name="reply_comment"
     ),
     # Page to filter posts by category
     path("category/<slug:slug>/", category_page, name="category_page"),
     # Page to filter posts by tag
-    path("tag/<slug:slug>/", tag_page, name="tag_page"),
+    path("tag/<str:slug>/", tag_page, name="tag_page"),
 ]

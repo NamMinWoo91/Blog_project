@@ -6,11 +6,21 @@
 </head>
 <body>
     <h1>게시글 작성</h1>
-    <form method="POST">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form.title.label_tag }} {{ form.title }}
+        {{ form.content.label_tag }} {{ form.content }}
+        {{ form.head_image.label_tag }} {{ form.head_image }}
+        {{ form.file_upload.label_tag }} {{ form.file_upload }}
+        {{ form.category.label_tag }} {{ form.category }}
+        
+        <label for="id_tags">태그 (쉼표로 구분):</label>
+        <input type="text" name="tags" id="id_tags" value="{{ form.tags.value|default_if_none:'' }}">
+        
         <button type="submit">저장</button>
     </form>
+    
+    <a href="{% url 'blog_page:post_list' %}">게시글 목록으로 돌아가기</a>
     <a href="{% url 'blog_page:post_list' %}">게시글 목록으로 돌아가기</a>  <!-- 게시글 목록 링크 -->
 </body>
 </html>

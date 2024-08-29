@@ -15,6 +15,7 @@ from django.utils.text import slugify
 from django.db.models import Q
 from django.contrib import messages
 from django.http import HttpResponseRedirect
+from .forms import PostForm
 
 
 class PostList(ListView):
@@ -52,11 +53,10 @@ class PostDetail(DetailView):
     model = Post
     template_name = "blog_page/post_detail.html"
 
-    # 조회수 증가 로직 추가
     def get_object(self, queryset=None):
         post = super().get_object(queryset)
-        post.views_count += 1  # 조회수 1 증가
-        post.save(update_fields=["views_count"])  # 조회수 필드만 업데이트
+        post.views_count += 1
+        post.save(update_fields=["views_count"])
         return post
 
     def get_context_data(self, **kwargs):
@@ -65,6 +65,18 @@ class PostDetail(DetailView):
         context["no_category_post_count"] = Post.objects.filter(category=None).count()
         context["comment_form"] = CommentForm
         context["current_user"] = self.request.user
+
+        # 댓글을 구조화된 형태로 추가
+        comments = self.object.comment_set.filter(parent=None).order_by("created_at")
+        comment_tree = []
+        for comment in comments:
+            comment_dict = {
+                "comment": comment,
+                "replies": comment.replies.all().order_by("created_at"),
+            }
+            comment_tree.append(comment_dict)
+        context["comment_tree"] = comment_tree
+
         return context
 
 
@@ -97,46 +109,48 @@ def tag_page(request, slug):
 
 class PostCreate(LoginRequiredMixin, CreateView):
     model = Post
-    fields = ["title", "content", "head_image", "file_upload", "category"]
+    form_class = PostForm
     template_name = "blog_page/write_page.html"
+    success_url = reverse_lazy("blog_page:post_list")
 
     def form_valid(self, form):
         current_user = self.request.user
         if current_user.is_authenticated:
             form.instance.author = current_user
-            response = super(PostCreate, self).form_valid(form)
+            post = form.save(commit=False)
+            post.save()
 
-            tags_str = self.request.POST.get("tags_str")
-            if tags_str:
-                tags_str = tags_str.strip().replace(",", ";")
-                tags_list = tags_str.split(";")
-                for t in tags_list:
-                    t = t.strip()
-                    tag, is_tag_created = Tag.objects.get_or_create(name=t)
-                    if is_tag_created:
-                        tag.slug = slugify(t, allow_unicode=True)
-                        tag.save()
-                    self.object.tags.add(tag)
-            return response
+            tag_names = form.cleaned_data["tags"]
+            for tag_name in tag_names:
+                slug = slugify(tag_name, allow_unicode=True)
+                tag, created = Tag.objects.get_or_create(
+                    name=tag_name, defaults={"slug": slug}
+                )
+                post.tags.add(tag)
+
+            return super().form_valid(form)
         else:
             return redirect("/blog/")
 
 
 class PostUpdate(LoginRequiredMixin, UpdateView):
     model = Post
-    fields = ["title", "content", "head_image", "file_upload", "category", "tags"]
+    form_class = PostForm
     template_name = "blog_page/post_edit.html"
 
     def form_valid(self, form):
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        self.object.tags.clear()
+        tag_names = form.cleaned_data["tags"]
+        for tag_name in tag_names:
+            tag, created = Tag.objects.get_or_create(name=tag_name)
+            self.object.tags.add(tag)
+        return response
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect("login_url")  # 로그인 URL로 리다이렉트
-        post = self.get_object()
-        if post.author != request.user:
-            return HttpResponseForbidden("You are not allowed to update this post")
-        return super().dispatch(request, *args, **kwargs)
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["tags"] = ", ".join(tag.name for tag in self.object.tags.all())
+        return initial
 
 
 def new_comment(request, pk, parent_comment_id=None):
@@ -152,11 +166,11 @@ def new_comment(request, pk, parent_comment_id=None):
                     parent_comment = get_object_or_404(Comment, pk=parent_comment_id)
                     comment.parent = parent_comment  # 대댓글의 부모 댓글 지정
                 comment.save()
-                return redirect(comment.get_absolute_url())
+                return redirect(post.get_absolute_url())
         else:
             form = CommentForm()
         return render(request, "blog_page/comment_form.html", {"form": form})
-    return redirect("login_url")  # 로그인 URL로 리다이렉트
+    return redirect("login_url")
 
 
 class PostDelete(DeleteView):
