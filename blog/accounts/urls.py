@@ -5,6 +5,7 @@ from .views import (
     LogoutView,
     PasswordChangeView,
     ProfileUpdateView,
+    ProfileView,  # 추가: 프로필 보기 뷰
 )
 
 app_name = "accounts"
@@ -15,4 +16,5 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("password_change/", PasswordChangeView.as_view(), name="password_change"),
     path("profile_edit/", ProfileUpdateView.as_view(), name="profile_edit"),
+    path("profile/", ProfileView.as_view(), name="profile"),  # 추가: 프로필 보기 URL
 ]

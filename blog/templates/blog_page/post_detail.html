@@ -1,4 +1,5 @@
 {% load static %}
+
 {% block content %}
     <h2>{{ post.title }}</h2>
     <p>작성자: {{ post.author }} | 날짜: {{ post.created_at }} | 조회수: {{ post.views_count }}</p>
@@ -30,6 +31,30 @@
         <img src="{{ post.head_image.url }}" alt="Image for {{ post.title }}" style="max-width: 100%; height: auto;">
     {% endif %}
 
+    <!-- 좋아요 버튼 -->
+    <div id="like-section">
+        <button id="like-button" data-post-id="{{ post.id }}">
+            {% if user.is_authenticated and post.is_liked_by %}
+                좋아요 취소
+            {% else %}
+                좋아요
+            {% endif %}
+        </button>
+        <span id="like-count">{{ post.total_likes }}</span> 명이 좋아합니다
+    </div>
+
+    <!-- 북마크 버튼 추가 -->
+    <div id="bookmark-section">
+        <button id="bookmark-button" data-post-id="{{ post.id }}">
+            {% if user.is_authenticated and post.is_bookmarked_by %}
+                북마크 취소
+            {% else %}
+                북마크
+            {% endif %}
+        </button>
+        <span id="bookmark-count">{{ post.bookmark_set.count }}</span> 명이 북마크함
+    </div>
+
     {% if user.is_authenticated and request.user == post.author %}
         <div>
             <a href="{% url 'blog_page:post_edit' post.pk %}">
@@ -40,9 +65,22 @@
             </a>
         </div>
     {% endif %}
-<div>
-    <a href="{% url 'blog_page:post_list' %}">게시글 목록으로 돌아가기</a>
-</div>
+
+    {% if related_posts %}
+    <div class="related-posts">
+        <h3>관련 게시물</h3>
+        <ul>
+        {% for related_post in related_posts %}
+            <li><a href="{{ related_post.get_absolute_url }}">{{ related_post.title }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div>
+        <a href="{% url 'blog_page:post_list' %}">게시글 목록으로 돌아가기</a>
+    </div>
+
     <h3>댓글</h3>
     <ul id="comment-list">
         {% for comment_item in comment_tree %}
@@ -98,42 +136,9 @@
     {% else %}
         <p>로그인 후 댓글을 남길 수 있습니다.</p>
     {% endif %}
+{% endblock %}
 
+{% block extra_js %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.edit-button').click(function() {
-                var commentId = $(this).data('comment-id');
-                var commentContent = $(this).siblings('.comment-content').text();
-                var actionUrl = "{% url 'blog_page:comment_update' 0 %}".replace('0', commentId);
-        
-                var csrfToken = $('[name=csrfmiddlewaretoken]').val();
-                var editForm = `<form class="edit-form" method="post" action="${actionUrl}">`
-                + `<input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">`
-                + `<textarea name="content">${commentContent}</textarea>`
-                + `<button type="submit">수정하기</button>`
-                + `<button type="button" class="cancel-edit">취소</button>`
-                + `</form>`;
-        
-                $('#comment-' + commentId).html(editForm);
-            });
-
-            $('.reply-button').click(function() {
-                var commentId = $(this).data('comment-id');
-                $('#reply-form-' + commentId).toggle();
-            });
-
-            $('.delete-button').click(function() {
-                var commentId = $(this).data('comment-id');
-                if (confirm('정말 삭제하시겠습니까?')) {
-                    var deleteUrl = "{% url 'blog_page:delete_comment' 0 %}".replace('0', commentId);
-                    window.location.href = deleteUrl;
-                }
-            });
-        
-            $(document).on('click', '.cancel-edit', function() {
-                location.reload();
-            });
-        });
-    </script>
+    <script src="{% static 'js/post_detail.js' %}"></script>
 {% endblock %}

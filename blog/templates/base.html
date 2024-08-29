@@ -21,13 +21,15 @@
             <a href="{% url 'accounts:profile_edit' %}">
                 <button type="button">프로필 편집</button>
             </a>
+
+            <!-- 프로필 보기 버튼 추가 -->
+            <a href="{% url 'accounts:profile' %}">  <!-- profile URL을 적절히 수정 -->
+                <button type="button">내 프로필 보기</button>
+            </a>
         {% else %}
             <h2>환영합니다!</h2>
             <p>로그인 해주세요.</p>
         {% endif %}
-    
-
-
         
         <!-- 블로그 입장하기 버튼 -->
         <a href="{% url 'blog_page:post_list' %}">

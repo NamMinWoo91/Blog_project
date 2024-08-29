@@ -1,0 +1,30 @@
+{% load static %}  <!-- 이 줄을 추가하세요 -->
+
+    {% block content %}
+    <h1>{{ user.username }}의 프로필</h1>
+
+    {% if user.profile_image %}
+        <img src="{{ user.profile_image.url }}" alt="{{ user.nickname }}의 프로필 이미지" style="max-width: 200px;">
+    {% else %}
+        <img src="{% static 'accounts_profile.png' %}" alt="기본 프로필 이미지" style="max-width: 200px;">
+    {% endif %}
+    
+    <h2>닉네임: {{ user.nickname }}</h2>
+    <p>이메일: {{ user.email }}</p>
+    
+    <h3>북마크한 게시물</h3>
+    {% if user.bookmark_set.count > 0 %}
+        <ul>
+        {% for bookmark in user.bookmark_set.all %}
+            <li>
+                <a href="{% url 'blog_page:post_detail' bookmark.post.pk %}">포스트 상세보기</a>
+                (북마크한 날짜: {{ bookmark.created_at|date:"Y-m-d H:i" }})
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>북마크한 게시물이 없습니다.</p>
+    {% endif %}
+
+    <a href="{% url 'accounts:profile_edit' %}">프로필 수정</a>
+    {% endblock %}

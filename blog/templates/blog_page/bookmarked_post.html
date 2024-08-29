@@ -1,0 +1,16 @@
+
+{% block content %}
+    <h1>내 북마크</h1>
+    {% if bookmarked_posts %}
+        <ul>
+        {% for post in bookmarked_posts %}
+            <li>
+                <a href="{% url 'blog_page:post_detail' post.pk %}">{{ post.title }}</a>
+                <small>({{ post.created_at|date:"Y-m-d" }})</small>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>북마크한 게시물이 없습니다.</p>
+    {% endif %}
+{% endblock %}

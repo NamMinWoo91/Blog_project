@@ -1,6 +1,8 @@
 from django.db import models
 from accounts.models import CustomUser
 from django.utils.text import slugify
+from django.conf import settings
+from django.contrib.auth import get_user_model
 
 # from django.contrib.auth.models import User
 
@@ -12,6 +14,7 @@ class Post(models.Model):
     file_upload = models.FileField(upload_to="blog/files/%Y/%m/%d/", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
+    related_posts = models.ManyToManyField("self", blank=True, symmetrical=False)
 
     # author = models.ForeignKey(User, on_delete=models.CASCADE)
     author = models.ForeignKey("accounts.CustomUser", on_delete=models.CASCADE)
@@ -34,6 +37,12 @@ class Post(models.Model):
 
     def get_file_ext(self):
         return self.get_file_name().split(".")[-1]
+
+    def total_likes(self):
+        return self.like_set.count()
+
+    def is_liked_by(self, user):
+        return self.like_set.filter(user=user).exists()
 
 
 class Category(models.Model):
@@ -92,3 +101,24 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ["-id"]
+
+
+class Like(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    post = models.ForeignKey("Post", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "post")
+
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    post = models.ForeignKey("Post", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "post")
+
+    def __str__(self):
+        return f"{self.user.username} bookmarked {self.post.title}"
