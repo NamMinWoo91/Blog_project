@@ -1,21 +1,14 @@
 {% extends 'base.html' %}
+{% block title %}게시물 삭제{% endblock %}
 
 {% block content %}
-    <h2>삭제하시겠습니까? "{{ object.title }}"?</h2>
-
-    <!-- Django messages를 사용하여 경고 메시지 표시 -->
-    {% if messages %}
-        {% for message in messages %}
-            <script>
-                alert("{{ message }}");
-            </script>
-        {% endfor %}
-    {% endif %}
-
-    <form method="post">
+<div class="container">
+    <h1 class="page-title">게시물 삭제</h1>
+    <p class="delete-confirmation">정말로 "{{ object.title }}" 게시물을 삭제하시겠습니까?</p>
+    <form method="post" class="delete-form">
         {% csrf_token %}
-        <button type="submit">네 삭제할게요</button>
-        <!-- "아니요" 버튼 -->
-        <button type="button" onclick="window.location.href='{% url 'blog_page:post_list' %}'">아니요</button>
+        <button type="submit" class="btn btn-danger">삭제</button>
+        <a href="{% url 'blog_page:post_detail' object.pk %}" class="btn btn-secondary">취소</a>
     </form>
+</div>
 {% endblock %}

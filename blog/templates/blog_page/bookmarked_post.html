@@ -1,16 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}북마크된 게시물{% endblock %}
 
 {% block content %}
-    <h1>내 북마크</h1>
+<div class="container">
+    <h1 class="page-title">내 북마크</h1>
     {% if bookmarked_posts %}
-        <ul>
+        <ul class="post-list">
         {% for post in bookmarked_posts %}
-            <li>
-                <a href="{% url 'blog_page:post_detail' post.pk %}">{{ post.title }}</a>
-                <small>({{ post.created_at|date:"Y-m-d" }})</small>
+            <li class="post-item">
+                <a href="{% url 'blog_page:post_detail' post.pk %}" class="post-link">
+                    {{ post.title }}
+                </a>
+                <span class="post-date">({{ post.created_at|date:"Y-m-d" }})</span>
             </li>
         {% endfor %}
         </ul>
     {% else %}
-        <p>북마크한 게시물이 없습니다.</p>
+        <p class="no-posts">북마크한 게시물이 없습니다.</p>
     {% endif %}
+</div>
 {% endblock %}

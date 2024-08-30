@@ -1,12 +1,19 @@
 {% extends 'base.html' %}
-
-{% block title %}Categories{% endblock %}
+{% block title %}카테고리{% endblock %}
 
 {% block content %}
-    <h2>Categories</h2>
-    <ul>
-        {% for category in categories %}
-            <li><a href="{{ category.get_absolute_url }}">{{ category.name }}</a></li>
-        {% endfor %}
+<div class="container">
+    <h1 class="page-title">카테고리</h1>
+    <ul class="category-list">
+    {% for category in categories %}
+        <li class="category-item">
+            <a href="{{ category.get_absolute_url }}" class="category-link">
+                {{ category.name }}
+            </a>
+        </li>
+    {% empty %}
+        <li class="no-categories">카테고리가 없습니다.</li>
+    {% endfor %}
     </ul>
+</div>
 {% endblock %}

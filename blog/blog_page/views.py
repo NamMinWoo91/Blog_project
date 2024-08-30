@@ -16,6 +16,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden, JsonRespons
 from django.views.decorators.http import require_POST
 from .models import Post, Category, Tag, Comment, Like, Bookmark
 from .forms import CommentForm, PostForm
+from django.template.loader import render_to_string
 
 
 class PostList(ListView):
@@ -32,7 +33,7 @@ class PostList(ListView):
         return context
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().filter(status="published")
         search_keyword = self.request.GET.get("q")
         if search_keyword:
             queryset = queryset.filter(
@@ -100,21 +101,13 @@ class PostCreate(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
     template_name = "blog_page/write_page.html"
-    success_url = reverse_lazy("blog_page:post_list")
 
     def form_valid(self, form):
         if self.request.user.is_authenticated:
             form.instance.author = self.request.user
-            post = form.save(commit=False)
-            post.save()
-            for tag_name in form.cleaned_data["tags"]:
-                slug = slugify(tag_name, allow_unicode=True)
-                tag, _ = Tag.objects.get_or_create(
-                    name=tag_name, defaults={"slug": slug}
-                )
-                post.tags.add(tag)
             return super().form_valid(form)
-        return redirect("/blog/")
+        else:
+            return redirect("/blog/")
 
 
 class PostUpdate(LoginRequiredMixin, UpdateView):
@@ -137,7 +130,7 @@ class PostUpdate(LoginRequiredMixin, UpdateView):
 
 
 @login_required
-def new_comment(request, pk, parent_comment_id=None):
+def new_comment(request, pk):
     post = get_object_or_404(Post, pk=pk)
     if request.method == "POST":
         form = CommentForm(request.POST)
@@ -145,13 +138,17 @@ def new_comment(request, pk, parent_comment_id=None):
             comment = form.save(commit=False)
             comment.post = post
             comment.author = request.user
-            if parent_comment_id:
-                comment.parent = get_object_or_404(Comment, pk=parent_comment_id)
             comment.save()
+
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                html = render_to_string(
+                    "blog_page/comment_single.html",
+                    {"comment": comment},
+                    request=request,
+                )
+                return JsonResponse({"html": html})
             return redirect(post.get_absolute_url())
-    else:
-        form = CommentForm()
-    return render(request, "blog_page/comment_form.html", {"form": form})
+    return redirect(post.get_absolute_url())
 
 
 class PostDelete(LoginRequiredMixin, DeleteView):
@@ -169,40 +166,22 @@ class PostDelete(LoginRequiredMixin, DeleteView):
 
 class PostSearchView(ListView):
     model = Post
-    template_name = "blog_page/post_list.html"
+    template_name = "blog_page/post_search.html"
     context_object_name = "post_list"
-    paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        tag_slug = self.kwargs.get("tag", "")
-        search_keyword = self.request.GET.get("q", "")
-        search_by = self.request.GET.get("search_by", "title")
-
-        if tag_slug:
-            queryset = queryset.filter(tags__slug=tag_slug)
-
-        if search_keyword:
-            if search_by == "title":
-                queryset = queryset.filter(title__icontains=search_keyword)
-            elif search_by == "category":
-                queryset = queryset.filter(category__name__icontains=search_keyword)
-            else:
-                queryset = queryset.filter(
-                    Q(title__icontains=search_keyword)
-                    | Q(content__icontains=search_keyword)
-                    | Q(tags__name__icontains=search_keyword)
-                ).distinct()
-
-        return queryset
+        query = self.request.GET.get("q")
+        if query:
+            return Post.objects.filter(
+                Q(title__icontains=query)
+                | Q(content__icontains=query)
+                | Q(tags__name__icontains=query)
+            ).distinct()
+        return Post.objects.none()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["category_list"] = Category.objects.all().order_by("-name")
-        context["no_category_post_count"] = Post.objects.filter(category=None).count()
         context["search_keyword"] = self.request.GET.get("q", "")
-        context["search_by"] = self.request.GET.get("search_by", "title")
-        context["tag"] = self.kwargs.get("tag", "")
         return context
 
 

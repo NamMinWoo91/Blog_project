@@ -1,46 +1,32 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>Blog Posts</title>
-</head>
-<body>
-    <h2>Blog Posts</h2>
+{% extends 'base.html' %}
+{% block title %}블로그 게시물{% endblock %}
 
-    <!-- 글 작성 버튼 추가 -->
-    <a href="{% url 'blog_page:post_create' %}">
-        <button type="button">글 작성하기</button>
-    </a>
-
-    <form method="GET" action="">
-        <input type="text" name="q" value="{{ search_keyword }}" placeholder="검색어를 입력하세요">
-        <label for="search_by">검색 범주:</label>
-        <select name="search_by" id="search_by">
+{% block content %}
+<div class="container">
+    <h1 class="page-title">블로그 게시물</h1>
+    <a href="{% url 'blog_page:post_create' %}" class="btn btn-primary">글 작성하기</a>
+    
+    <form method="get" action="{% url 'blog_page:search' %}" class="search-form">
+        <input type="text" name="q" placeholder="검색어를 입력하세요" value="{{ search_keyword }}">
+        <select name="search_by">
             <option value="title" {% if search_by == 'title' %}selected{% endif %}>글 제목</option>
             <option value="category" {% if search_by == 'category' %}selected{% endif %}>카테고리</option>
-            <!-- 필요한 다른 검색 기준을 여기에 추가할 수 있습니다 -->
         </select>
         <button type="submit">검색</button>
     </form>
 
-    <ul>
+    <div class="post-grid">
         {% for post in posts %}
-            <li>
-                <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
-                <p>by {{ post.author }} on {{ post.created_at }}</p>
-            </li>
+            <div class="post-card">
+                <h2 class="post-title"><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+                <p class="post-meta">by {{ post.author }} on {{ post.created_at }}</p>
+                <!-- 추가적인 포스트 정보 -->
+            </div>
         {% empty %}
-            <li>게시글이 없습니다.</li>
+            <p class="no-posts">게시글이 없습니다.</p>
         {% endfor %}
-    </ul>
+    </div>
 
-    <h3>카테고리 목록</h3>
-    <ul>
-        {% for category in category_list %}
-            <li>{{ category.name }} ({{ category.post_set.count }})</li>
-        {% endfor %}
-    </ul>
-    
-    <p>카테고리가 없는 게시글 수: {{ no_category_post_count }}</p>
-</body>
-</html>
+    <!-- 페이지네이션 -->
+</div>
+{% endblock %}

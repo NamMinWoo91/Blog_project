@@ -1,43 +1,24 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko-KR">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>로그인</title>
-    <link rel="stylesheet" href="{% static 'accounts/css/login.css' %}">
-</head>
-<body>
-    <!-- header -->
-    <div class="header">
-        {% if user.is_authenticated %}
-            <a href="{% url 'accounts:logout' %}">로그아웃</a>
-        {% else %}
-            <a href="{% url 'accounts:register' %}">회원가입</a>
-        {% endif %}
-    </div>
-    <!-- // header -->
 
-    <div class="main">
-        <div class="container">
-            <h2 class="title">로그인</h2>
-            <p class="description">아이디와 비밀번호를 입력하고 로그인하세요</p>
+{% block title %}로그인{% endblock %}
 
-            <form class="login" method="post">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <div>
-                    <input type="checkbox" id="save-id" name="remember">
-                    <label for="save-id">아이디 저장</label>
-                </div>
-                <button class="submit-button" type="submit">로그인</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- footer -->
-    <p class="footer">Copyright 2023. Chilli All rights reserved.</p>
-    <!-- //footer -->
-</body>
-</html>
+{% block content %}
+<div class="auth-form">
+    <h2>로그인</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <small class="error">{{ field.errors|striptags }}</small>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit">로그인</button>
+    </form>
+    <p class="helper-text">계정이 없으신가요? <a href="{% url 'accounts:register' %}">회원가입</a></p>
+</div>
+{% endblock %}

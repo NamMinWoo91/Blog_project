@@ -15,6 +15,12 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
     related_posts = models.ManyToManyField("self", blank=True, symmetrical=False)
+    STATUS_CHOICES = [
+        ("draft", "초안"),
+        ("published", "발행됨"),
+        ("pending", "보류 중"),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="draft")
 
     # author = models.ForeignKey(User, on_delete=models.CASCADE)
     author = models.ForeignKey("accounts.CustomUser", on_delete=models.CASCADE)

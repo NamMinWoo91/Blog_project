@@ -30,7 +30,7 @@ urlpatterns = [
     # Page for deleting a post
     path("delete/<int:pk>/", PostDelete.as_view(), name="post_delete"),
     # Search posts
-    path("search/<int:pk>/", PostSearchView.as_view(), name="search"),
+    path("search/", PostSearchView.as_view(), name="search"),
     # Page for creating a new comment on a post
     path("<int:pk>/comment/", new_comment, name="new_comment"),
     # Page for updating an existing comment

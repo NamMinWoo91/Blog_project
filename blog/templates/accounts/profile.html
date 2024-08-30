@@ -1,30 +1,39 @@
-{% load static %}  <!-- 이 줄을 추가하세요 -->
+{% extends 'base.html' %}
+{% load static %}
 
-    {% block content %}
-    <h1>{{ user.username }}의 프로필</h1>
+{% block title %}{{ user.username }}의 프로필{% endblock %}
 
-    {% if user.profile_image %}
-        <img src="{{ user.profile_image.url }}" alt="{{ user.nickname }}의 프로필 이미지" style="max-width: 200px;">
-    {% else %}
-        <img src="{% static 'accounts_profile.png' %}" alt="기본 프로필 이미지" style="max-width: 200px;">
-    {% endif %}
-    
-    <h2>닉네임: {{ user.nickname }}</h2>
-    <p>이메일: {{ user.email }}</p>
-    
-    <h3>북마크한 게시물</h3>
-    {% if user.bookmark_set.count > 0 %}
-        <ul>
-        {% for bookmark in user.bookmark_set.all %}
-            <li>
-                <a href="{% url 'blog_page:post_detail' bookmark.post.pk %}">포스트 상세보기</a>
-                (북마크한 날짜: {{ bookmark.created_at|date:"Y-m-d H:i" }})
-            </li>
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        {% if user.profile_image %}
+            <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" class="profile-image">
+        {% else %}
+            <img src="{% static 'img/default-profile.png' %}" alt="Default profile" class="profile-image">
+        {% endif %}
+        <h2 class="profile-name">{{ user.username }}</h2>
+    </div>
+    <div class="profile-details">
+        <p><strong>이메일:</strong> {{ user.email }}</p>
+        {% if user.bio %}<p><strong>자기소개:</strong> {{ user.bio }}</p>{% endif %}
+        {% if user.location %}<p><strong>위치:</strong> {{ user.location }}</p>{% endif %}
+        {% if user.website %}<p><strong>웹사이트:</strong> <a href="{{ user.website }}" target="_blank">{{ user.website }}</a></p>{% endif %}
+    </div>
+    <div class="profile-actions">
+        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary">프로필 수정</a>
+        <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary">비밀번호 변경</a>
+    </div>
+
+    <h3>내가 작성한 글</h3>
+    <div class="user-posts">
+        {% for post in user_posts %}
+            <div class="post-item">
+                <h4><a href="{% url 'blog_page:post_detail' post.pk %}">{{ post.title }}</a></h4>
+                <p>작성일: {{ post.created_at|date:"Y-m-d H:i" }}, 상태: {{ post.get_status_display }}</p>
+            </div>
+        {% empty %}
+            <p>작성한 글이 없습니다.</p>
         {% endfor %}
-        </ul>
-    {% else %}
-        <p>북마크한 게시물이 없습니다.</p>
-    {% endif %}
-
-    <a href="{% url 'accounts:profile_edit' %}">프로필 수정</a>
-    {% endblock %}
+    </div>
+</div>
+{% endblock %}

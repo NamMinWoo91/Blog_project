@@ -3,7 +3,7 @@ from .views import (
     RegisterView,
     LoginView,
     LogoutView,
-    PasswordChangeView,
+    CustomPasswordChangeView,
     ProfileUpdateView,
     ProfileView,  # 추가: 프로필 보기 뷰
 )
@@ -14,7 +14,9 @@ urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
-    path("password_change/", PasswordChangeView.as_view(), name="password_change"),
+    path(
+        "password_change/", CustomPasswordChangeView.as_view(), name="password_change"
+    ),
     path("profile_edit/", ProfileUpdateView.as_view(), name="profile_edit"),
     path("profile/", ProfileView.as_view(), name="profile"),  # 추가: 프로필 보기 URL
 ]

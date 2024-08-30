@@ -3,21 +3,30 @@ from .models import Post, Category, Tag, Comment
 
 
 class PostForm(forms.ModelForm):
-    tags = forms.CharField(required=False, help_text="쉼표로 구분하여 입력하세요")
+    tags = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.all(), required=False, widget=forms.CheckboxSelectMultiple
+    )
 
     class Meta:
         model = Post
-        fields = ["title", "content", "head_image", "file_upload", "category"]
+        fields = [
+            "title",
+            "content",
+            "head_image",
+            "file_upload",
+            "category",
+            "tags",
+            "status",
+        ]
         widgets = {
             "content": forms.Textarea(attrs={"rows": 5, "cols": 20}),
             "title": forms.TextInput(attrs={"placeholder": "제목을 입력하세요"}),
             "head_image": forms.ClearableFileInput(attrs={"multiple": False}),
         }
 
-    def clean_tags(self):
-        tag_names = self.cleaned_data.get("tags", "")
-        tag_list = [name.strip() for name in tag_names.split(",") if name.strip()]
-        return tag_list
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["category"].required = False
 
 
 class CategoryForm(forms.ModelForm):

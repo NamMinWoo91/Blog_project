@@ -1,26 +1,43 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>게시글 작성</title>
-</head>
-<body>
-    <h1>게시글 작성</h1>
-    <form method="post" enctype="multipart/form-data">
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}게시글 작성{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">게시글 작성</h1>
+    <form method="post" enctype="multipart/form-data" class="post-form">
         {% csrf_token %}
-        {{ form.title.label_tag }} {{ form.title }}
-        {{ form.content.label_tag }} {{ form.content }}
-        {{ form.head_image.label_tag }} {{ form.head_image }}
-        {{ form.file_upload.label_tag }} {{ form.file_upload }}
-        {{ form.category.label_tag }} {{ form.category }}
-        
-        <label for="id_tags">태그 (쉼표로 구분):</label>
-        <input type="text" name="tags" id="id_tags" value="{{ form.tags.value|default_if_none:'' }}">
-        
-        <button type="submit">저장</button>
+        <div class="form-group">
+            <label for="{{ form.title.id_for_label }}">제목:</label>
+            {{ form.title }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.content.id_for_label }}">내용:</label>
+            {{ form.content }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.category.id_for_label }}">카테고리:</label>
+            {{ form.category }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.tags.id_for_label }}">태그:</label>
+            {{ form.tags }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.head_image.id_for_label }}">대표 이미지:</label>
+            {{ form.head_image }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.file_upload.id_for_label }}">파일 업로드:</label>
+            {{ form.file_upload }}
+        </div>
+        <button type="submit" class="btn btn-primary">저장</button>
+        <a href="{% url 'blog_page:post_list' %}" class="btn btn-secondary">취소</a>
     </form>
-    
-    <a href="{% url 'blog_page:post_list' %}">게시글 목록으로 돌아가기</a>
-    <a href="{% url 'blog_page:post_list' %}">게시글 목록으로 돌아가기</a>  <!-- 게시글 목록 링크 -->
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/write_page.js' %}"></script>
+{% endblock %}

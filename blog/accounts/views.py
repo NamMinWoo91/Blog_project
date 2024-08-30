@@ -12,6 +12,7 @@ from .forms import (
 )
 from .models import CustomUser
 from django.views.generic import DetailView
+from blog_page.models import Post
 
 
 class RegisterView(CreateView):
@@ -37,9 +38,17 @@ class LogoutView(LogoutView):
     next_page = reverse_lazy("home")  # 로그아웃 후 리디렉션할 URL
 
 
-class PasswordChange(LoginRequiredMixin, PasswordChangeView):
+class CustomPasswordChangeView(PasswordChangeView):
     template_name = "accounts/password_change.html"
-    success_url = reverse_lazy("home")
+    success_url = reverse_lazy("accounts:profile")
+
+
+from django.urls import reverse_lazy
+
+
+class CustomPasswordChangeView(PasswordChangeView):
+    template_name = "accounts/password_change.html"
+    success_url = reverse_lazy("accounts:profile")
 
 
 class ProfileView(LoginRequiredMixin, DetailView):
@@ -50,12 +59,19 @@ class ProfileView(LoginRequiredMixin, DetailView):
     def get_object(self):
         return self.request.user  # 현재 로그인한 사용자
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["user_posts"] = Post.objects.filter(author=self.request.user).order_by(
+            "-created_at"
+        )
+        return context
+
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = CustomUser
     form_class = CustomUserChangeForm
     template_name = "accounts/profile_edit.html"
-    success_url = reverse_lazy("home")
+    success_url = reverse_lazy("accounts:profile")
 
     def get_object(self):
         return self.request.user  # 현재 로그인한 사용자

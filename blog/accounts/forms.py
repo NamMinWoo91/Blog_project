@@ -5,6 +5,7 @@ from django.contrib.auth.forms import (
     UserChangeForm,
 )
 from .models import CustomUser
+from django.contrib.auth.forms import UserChangeForm
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -35,9 +36,15 @@ class CustomAuthenticationForm(AuthenticationForm):
 
 
 class CustomUserChangeForm(UserChangeForm):
-    email = forms.EmailField(required=True)  # 이메일 필드 추가
-    nickname = forms.CharField(max_length=30, required=False)  # 닉네임 추가
-    profile_image = forms.ImageField(required=False)  # 프로필 이미지 추가
+    email = forms.EmailField(required=True)
+    nickname = forms.CharField(max_length=30, required=False)
+    profile_image = forms.ImageField(required=False)
+    bio = forms.CharField(widget=forms.Textarea, required=False)
+    location = forms.CharField(max_length=100, required=False)
+    birth_date = forms.DateField(
+        required=False, widget=forms.DateInput(attrs={"type": "date"})
+    )
+    website = forms.URLField(required=False)
 
     class Meta:
         model = CustomUser
@@ -46,15 +53,11 @@ class CustomUserChangeForm(UserChangeForm):
             "email",
             "nickname",
             "profile_image",
+            "bio",
+            "location",
+            "birth_date",
+            "website",
         )
-        help_texts = {
-            "password": "비밀번호를 변경하려면 새 비밀번호를 입력하세요.",
-        }
-        error_messages = {
-            "password": {
-                "required": "비밀번호를 입력하지 않으면 변경할 수 없습니다.",
-            },
-        }
 
     def clean_email(self):
         email = self.cleaned_data.get("email")
