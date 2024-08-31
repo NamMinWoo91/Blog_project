@@ -4,16 +4,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const submitButton = form.querySelector('button[type="submit"]');
 
     // 폼 필드 선택
-    const titleField = form.querySelector("#" + form.title.id_for_label);
-    const contentField = form.querySelector("#" + form.content.id_for_label);
-    const categoryField = form.querySelector("#" + form.category.id_for_label);
-    const tagsField = form.querySelector("#" + form.tags.id_for_label);
-    const headImageField = form.querySelector(
-        "#" + form.head_image.id_for_label
-    );
-    const fileUploadField = form.querySelector(
-        "#" + form.file_upload.id_for_label
-    );
+    const titleField = form.querySelector("#id_title");
+    const contentField = form.querySelector("#id_content");
+    const categoryField = form.querySelector("#id_category");
+    const tagsField = form.querySelector("#id_tags");
+    const headImageField = form.querySelector("#id_head_image");
+    const fileUploadField = form.querySelector("#id_file_upload");
 
     // 에러 메시지를 표시할 함수
     function displayError(message) {

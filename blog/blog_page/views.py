@@ -17,6 +17,7 @@ from django.views.decorators.http import require_POST
 from .models import Post, Category, Tag, Comment, Like, Bookmark
 from .forms import CommentForm, PostForm
 from django.template.loader import render_to_string
+from django.core.exceptions import PermissionDenied
 
 
 class PostList(ListView):
@@ -109,11 +110,25 @@ class PostCreate(LoginRequiredMixin, CreateView):
         else:
             return redirect("/blog/")
 
+    def form_invalid(self, form):
+        context = self.get_context_data(form=form)
+        context["errors"] = form.errors
+        return self.render_to_response(context)
+
 
 class PostUpdate(LoginRequiredMixin, UpdateView):
     model = Post
     form_class = PostForm
     template_name = "blog_page/post_edit.html"
+
+    def get_object(self, queryset=None):
+        # 기존의 get_object 메서드를 사용하여 객체를 가져옵니다.
+        obj = super().get_object(queryset)
+        # 현재 로그인한 사용자가 객체의 작성자인지 확인합니다.
+        if obj.author != self.request.user:
+            # 작성자가 아닌 경우 PermissionDenied 예외를 발생시킵니다.
+            raise PermissionDenied
+        return obj
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -129,31 +144,9 @@ class PostUpdate(LoginRequiredMixin, UpdateView):
         return initial
 
 
-@login_required
-def new_comment(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    if request.method == "POST":
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.post = post
-            comment.author = request.user
-            comment.save()
-
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                html = render_to_string(
-                    "blog_page/comment_single.html",
-                    {"comment": comment},
-                    request=request,
-                )
-                return JsonResponse({"html": html})
-            return redirect(post.get_absolute_url())
-    return redirect(post.get_absolute_url())
-
-
 class PostDelete(LoginRequiredMixin, DeleteView):
     model = Post
-    template_name = "blog_page/post_delete.html"
+    # template_name = "blog_page/post_delete.html"
     success_url = reverse_lazy("blog_page:post_list")
 
     def dispatch(self, request, *args, **kwargs):
@@ -162,6 +155,17 @@ class PostDelete(LoginRequiredMixin, DeleteView):
             messages.error(request, "You do not have permission to delete this post.")
             return HttpResponseRedirect(self.success_url)
         return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        post = self.get_object()
+        if post.author != request.user:
+            messages.error(request, "You do not have permission to delete this post.")
+            return HttpResponseRedirect(self.success_url)
+
+        self.object = post
+        self.object.delete()
+        messages.success(request, "Post has been successfully deleted.")
+        return redirect(self.success_url)
 
 
 class PostSearchView(ListView):
@@ -185,30 +189,46 @@ class PostSearchView(ListView):
         return context
 
 
+class CommentCreate(LoginRequiredMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+
+    def form_valid(self, form):
+        form.instance.post = Post.objects.get(pk=self.kwargs["pk"])
+        form.instance.author = self.request.user
+        response = super().form_valid(form)
+        if self.request.is_ajax():
+            html = render_to_string(
+                "blog_page/comment_single.html", {"comment": self.object}
+            )
+            return JsonResponse({"html": html})
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy("blog_page:post_detail", kwargs={"pk": self.kwargs["pk"]})
+
+
 class CommentUpdate(LoginRequiredMixin, UpdateView):
     model = Comment
     form_class = CommentForm
-    template_name = "blog_page/comment_form.html"
 
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
-
-    def dispatch(self, request, *args, **kwargs):
-        comment = self.get_object()
-        if comment.author != request.user:
-            return HttpResponseForbidden("You are not allowed to update this comment")
-        return super().dispatch(request, *args, **kwargs)
+    def get_success_url(self):
+        return reverse_lazy("blog_page:post_detail", kwargs={"pk": self.object.post.pk})
 
 
-@login_required
-def delete_comment(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)
-    if comment.author == request.user:
-        post_url = comment.post.get_absolute_url()
-        comment.delete()
-        return redirect(post_url)
-    return HttpResponseForbidden("You are not allowed to delete this comment")
+class CommentDelete(LoginRequiredMixin, DeleteView):
+    model = Comment
+
+    def get_success_url(self):
+        return reverse_lazy("blog_page:post_detail", kwargs={"pk": self.object.post.pk})
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.delete()
+        if self.request.is_ajax():
+            return JsonResponse({"success": True})
+        return HttpResponseRedirect(success_url)
 
 
 @require_POST
@@ -221,7 +241,7 @@ def like_post(request, post_id):
         liked = False
     else:
         liked = True
-    return JsonResponse({"liked": liked, "total_likes": post.total_likes()})
+    return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
 
 
 @login_required
@@ -235,9 +255,7 @@ def toggle_bookmark(request, post_id):
     else:
         is_bookmarked = True
 
-    return JsonResponse(
-        {"is_bookmarked": is_bookmarked, "bookmark_count": post.bookmark_set.count()}
-    )
+    return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
 
 
 @login_required

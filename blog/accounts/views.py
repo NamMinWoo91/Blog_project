@@ -25,6 +25,11 @@ class RegisterView(CreateView):
         login(self.request, user)
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        context = self.get_context_data(form=form)
+        context["errors"] = form.errors
+        return self.render_to_response(context)
+
 
 class LoginView(LoginView):
     template_name = "accounts/login.html"

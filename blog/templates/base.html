@@ -23,7 +23,10 @@
                 <li><a href="{% url 'blog_page:post_list' %}" class="{% if request.resolver_match.url_name == 'post_list' %}active{% endif %}">Blog</a></li>
                 <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="#" id="logout-link" data-url="{% url 'accounts:logout' %}">Logout</a></li>
+                <form method="post" action="{% url "accounts:logout" %}">
+                    {% csrf_token %}
+                    <li><button type="submit">Logout</button></li>
+                </form>
                 {% else %}
                     <li><a href="{% url 'accounts:login' %}">Login</a></li>
                     <li><a href="{% url 'accounts:register' %}">Register</a></li>
@@ -48,7 +51,6 @@
 
     {% csrf_token %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="{% static 'js/base.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

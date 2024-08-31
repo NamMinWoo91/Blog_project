@@ -18,11 +18,8 @@ class PostForm(forms.ModelForm):
             "tags",
             "status",
         ]
-        widgets = {
-            "content": forms.Textarea(attrs={"rows": 5, "cols": 20}),
-            "title": forms.TextInput(attrs={"placeholder": "제목을 입력하세요"}),
-            "head_image": forms.ClearableFileInput(attrs={"multiple": False}),
-        }
+        title = forms.CharField(widget=forms.TextInput(attrs={"id": "post-title"}))
+        content = forms.CharField(widget=forms.Textarea(attrs={"id": "post-content"}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
