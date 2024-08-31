@@ -194,40 +194,47 @@ class CommentCreate(LoginRequiredMixin, CreateView):
     form_class = CommentForm
 
     def form_valid(self, form):
+        # 폼이 유효하면 댓글 작성
         form.instance.post = Post.objects.get(pk=self.kwargs["pk"])
         form.instance.author = self.request.user
-        response = super().form_valid(form)
-        if self.request.is_ajax():
-            html = render_to_string(
-                "blog_page/comment_single.html", {"comment": self.object}
-            )
-            return JsonResponse({"html": html})
-        return response
+        return super().form_valid(form)
 
     def get_success_url(self):
+        # 댓글 작성 후 해당 게시글 상세 페이지로 리다이렉트
         return reverse_lazy("blog_page:post_detail", kwargs={"pk": self.kwargs["pk"]})
 
 
 class CommentUpdate(LoginRequiredMixin, UpdateView):
     model = Comment
     form_class = CommentForm
+    template_name = "blog_page/comment_update.html"
+
+    def form_valid(self, form):
+        form.save()
+        return redirect("blog_page:post_detail", pk=self.object.post.pk)
 
     def get_success_url(self):
         return reverse_lazy("blog_page:post_detail", kwargs={"pk": self.object.post.pk})
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.author != request.user:
+            return redirect("blog_page:post_detail", pk=self.object.post.pk)
+        return super().get(request, *args, **kwargs)
 
 
 class CommentDelete(LoginRequiredMixin, DeleteView):
     model = Comment
 
     def get_success_url(self):
+        # 댓글 삭제 후 해당 게시글 상세 페이지로 리다이렉트
         return reverse_lazy("blog_page:post_detail", kwargs={"pk": self.object.post.pk})
 
     def delete(self, request, *args, **kwargs):
+        # 삭제 로직을 처리하고 페이지를 리다이렉트
         self.object = self.get_object()
         success_url = self.get_success_url()
         self.object.delete()
-        if self.request.is_ajax():
-            return JsonResponse({"success": True})
         return HttpResponseRedirect(success_url)
 
 

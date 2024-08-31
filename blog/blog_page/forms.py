@@ -63,10 +63,13 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = ["content"]
         widgets = {
-            "content": forms.Textarea(
-                attrs={"rows": 3, "cols": 20, "placeholder": "댓글을 입력하세요"}
-            ),
+            "content": forms.Textarea(attrs={"class": "form-control"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["content"].required = False  # 필수 표시 제거
+        self.fields["content"].label = "댓글 내용"  # 레이블 변경
 
     def clean_content(self):
         content = self.cleaned_data.get("content")
