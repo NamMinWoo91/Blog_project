@@ -1,0 +1,26 @@
+{% for comment in comments %}
+    {% if not comment.parent %}
+        <div class="comment" id="comment-{{ comment.id }}">
+        <p>{{ comment.content }}</p>
+        <small>작성자: {{ comment.author }} | 날짜: {{ comment.created_at }}</small>
+        {% if user.is_authenticated %}
+            <button class="reply-button" data-comment-id="{{ comment.id }}">답글</button>
+        {% endif %}
+        
+        <div class="reply-form" id="reply-form-{{ comment.id }}" style="display: none;">
+            <form method="post" action="{% url 'blog_page:new_comment' comment.post.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+            {{ comment_form.content }}
+            <button type="submit">답글 작성</button>
+            </form>
+        </div>
+
+        {% if comment.replies.exists %}
+            <div class="replies">
+            {% include 'blog_page/comments_tree.html' with comments=comment.replies.all %}
+            </div>
+        {% endif %}
+        </div>
+    {% endif %}
+{% endfor %}

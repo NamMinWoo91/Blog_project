@@ -62,9 +62,13 @@ class TagForm(forms.ModelForm):
 
 
 class CommentForm(forms.ModelForm):
+    parent = forms.ModelChoiceField(
+        queryset=Comment.objects.all(), required=False, widget=forms.HiddenInput()
+    )
+
     class Meta:
         model = Comment
-        fields = ["content"]
+        fields = ["content", 'parent']
         widgets = {
             "content": forms.Textarea(
                 attrs={"rows": 3, "cols": 20, "placeholder": "댓글을 입력하세요"}

@@ -6,19 +6,26 @@
 {% block content %}
 <div class="auth-form">
     <h2>로그인</h2>
-    <form method="post">
+    <form method="post" novalidate>
         {% csrf_token %}
         {% for field in form %}
             <div class="form-group">
                 {{ field.label_tag }}
                 {{ field }}
                 {% if field.errors %}
-                    <small class="error">{{ field.errors|striptags }}</small>
+                    <ul class="errorlist">
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
                 {% endif %}
             </div>
         {% endfor %}
-        <button type="submit">로그인</button>
+        <button type="submit" class="btn btn-primary">로그인</button>
     </form>
-    <p class="helper-text">계정이 없으신가요? <a href="{% url 'accounts:register' %}">회원가입</a></p>
+    <div class="auth-links">
+        <p>계정이 없으신가요? <a href="{% url 'accounts:register' %}">회원가입</a></p>
+        <p><a href="{% url 'accounts:password_change' %}">비밀번호를 잊으셨나요?</a></p>
+    </div>
 </div>
 {% endblock %}
