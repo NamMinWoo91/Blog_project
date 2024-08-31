@@ -18,26 +18,12 @@ from blog_page.models import Post
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm
     template_name = "accounts/register.html"
-    success_url = reverse_lazy("home")
+    success_url = reverse_lazy("home")  # 홈 페이지로 리디렉션
 
     def form_valid(self, form):
         user = form.save()
         login(self.request, user)
-        messages.success(
-            self.request, f"안녕하세요, {user.username}님! 회원가입을 환영합니다."
-        )
         return super().form_valid(form)
-
-    def form_invalid(self, form):
-        messages.error(
-            self.request, "회원가입 중 오류가 발생했습니다. 아래 내용을 확인해주세요."
-        )
-        return super().form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["title"] = "회원가입"
-        return context
 
 
 class LoginView(LoginView):

@@ -8,24 +8,10 @@ from .models import CustomUser
 from django.contrib.auth.forms import UserChangeForm
 
 
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.core.exceptions import ValidationError
-from .models import CustomUser
-
-
 class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(
-        required=True, help_text="필수 항목입니다. 유효한 이메일 주소를 입력해주세요."
-    )
-    nickname = forms.CharField(
-        max_length=30,
-        required=False,
-        help_text="선택 항목입니다. 30자 이내로 입력해주세요.",
-    )
-    profile_image = forms.ImageField(
-        required=False, help_text="선택 항목입니다. 프로필 이미지를 업로드해주세요."
-    )
+    email = forms.EmailField(required=True)  # 이메일 필드 추가
+    nickname = forms.CharField(max_length=30, required=False)  # 닉네임 추가
+    profile_image = forms.ImageField(required=False)  # 프로필 이미지 추가
 
     class Meta:
         model = CustomUser
@@ -40,23 +26,9 @@ class CustomUserCreationForm(UserCreationForm):
 
     def clean_email(self):
         email = self.cleaned_data.get("email")
-        if email and CustomUser.objects.filter(email=email).exists():
-            raise ValidationError("이미 사용 중인 이메일 주소입니다.")
+        if CustomUser.objects.filter(email=email).exists():
+            raise forms.ValidationError("이 이메일은 이미 사용 중입니다.")
         return email
-
-    def clean_nickname(self):
-        nickname = self.cleaned_data.get("nickname")
-        if nickname and CustomUser.objects.filter(nickname=nickname).exists():
-            raise ValidationError("이미 사용 중인 닉네임입니다.")
-        return nickname
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data["email"]
-        user.nickname = self.cleaned_data.get("nickname")
-        if commit:
-            user.save()
-        return user
 
 
 class CustomAuthenticationForm(AuthenticationForm):
