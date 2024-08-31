@@ -1,35 +1,117 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const commentForm = document.getElementById("comment-form");
-    const commentsContainer = document.getElementById("comments-container");
+    const commentsSection = document.querySelector(".comments-section");
 
-    if (commentForm) {
-        commentForm.addEventListener("submit", function (e) {
+    // 댓글 작성 및 수정
+    commentsSection.addEventListener("submit", function (e) {
+        if (
+            e.target.matches("#comment-form") ||
+            e.target.closest(".reply-form") ||
+            e.target.closest(".edit-form")
+        ) {
             e.preventDefault();
-            const formData = new FormData(this);
+            const form = e.target;
+            const formData = new FormData(form);
 
-            fetch(this.action, {
+            fetch(form.action, {
                 method: "POST",
                 body: formData,
                 headers: {
                     "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": getCookie("csrftoken"),
                 },
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    commentsContainer.insertAdjacentHTML(
-                        "beforeend",
-                        data.html
-                    );
-                    commentForm.reset();
+                    if (data.success) {
+                        if (form.id === "comment-form") {
+                            document
+                                .getElementById("comments-list")
+                                .insertAdjacentHTML("beforeend", data.html);
+                        } else if (form.closest(".reply-form")) {
+                            const parentComment = form.closest(".comment");
+                            let repliesContainer =
+                                parentComment.querySelector(".replies");
+                            if (!repliesContainer) {
+                                repliesContainer =
+                                    document.createElement("div");
+                                repliesContainer.className = "replies";
+                                parentComment.appendChild(repliesContainer);
+                            }
+                            repliesContainer.insertAdjacentHTML(
+                                "beforeend",
+                                data.html
+                            );
+                        } else if (form.closest(".edit-form")) {
+                            const commentDiv = form.closest(".comment");
+                            commentDiv.querySelector(
+                                ".comment-content"
+                            ).textContent = data.content;
+                            form.closest(".edit-form").style.display = "none";
+                            commentDiv.querySelector(
+                                ".comment-content"
+                            ).style.display = "block";
+                        }
+                        form.reset();
+                        if (form.closest(".reply-form")) {
+                            form.closest(".reply-form").style.display = "none";
+                        }
+                    } else {
+                        throw new Error(JSON.stringify(data.errors));
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                    let errorMessage = "댓글 처리 중 오류가 발생했습니다.";
+                    try {
+                        const errorData = JSON.parse(error.message);
+                        errorMessage +=
+                            " " + Object.values(errorData).flat().join("\n");
+                    } catch {
+                        errorMessage += " " + error.message;
+                    }
+                    alert(errorMessage);
                 });
-        });
-    }
+        }
+    });
 
-    commentsContainer.addEventListener("click", function (e) {
-        if (e.target.classList.contains("delete-comment")) {
+    // 답글 폼 토글
+    commentsSection.addEventListener("click", function (e) {
+        if (e.target.matches(".reply-button")) {
+            const commentId = e.target.dataset.commentId;
+            const replyForm = document.getElementById(
+                `reply-form-${commentId}`
+            );
+            replyForm.style.display =
+                replyForm.style.display === "none" ? "block" : "none";
+        }
+    });
+
+    // 댓글 수정 폼 토글
+    commentsSection.addEventListener("click", function (e) {
+        if (e.target.matches(".edit-comment")) {
+            const commentId = e.target.dataset.commentId;
+            const editForm = document.getElementById(`edit-form-${commentId}`);
+            const commentContent = e.target
+                .closest(".comment")
+                .querySelector(".comment-content");
+            editForm.style.display = "block";
+            commentContent.style.display = "none";
+        }
+        if (e.target.matches(".cancel-edit")) {
+            const editForm = e.target.closest(".edit-form");
+            const commentContent = editForm.previousElementSibling;
+            editForm.style.display = "none";
+            commentContent.style.display = "block";
+        }
+    });
+
+    // 댓글 삭제
+    commentsSection.addEventListener("click", function (e) {
+        if (e.target.matches(".delete-comment")) {
             e.preventDefault();
-            if (confirm("Are you sure you want to delete this comment?")) {
-                fetch(e.target.href, {
+            if (confirm("정말 이 댓글을 삭제하시겠습니까?")) {
+                const form = e.target.closest("form");
+                fetch(form.action, {
                     method: "POST",
                     headers: {
                         "X-Requested-With": "XMLHttpRequest",

@@ -3,104 +3,89 @@
 
 {% block title %}{{ post.title }}{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
-{% endblock %}
-
 {% block content %}
-<article class="post-detail">
-    <h1 class="post-title">{{ post.title }}</h1>
-    <div class="post-meta">
-        <span class="author">작성자: {{ post.author }}</span>
-        <span class="date">날짜: {{ post.created_at }}</span>
-        <span class="views">조회수: {{ post.views_count }}</span>
-    </div>
-    {% if post.category %}
-        <div class="post-category">
-            카테고리: <a href="{% url 'blog_page:category_page' post.category.slug %}">{{ post.category }}</a>
-        </div>
-    {% endif %}
-    <div class="post-status">상태: {{ post.get_status_display }}</div>
-    <div class="post-tags">
-        {% for tag in post.tags.all %}
-            <a href="{% url 'blog_page:tag_page' tag.slug %}" class="tag">{{ tag.name }}</a>
+<h1 class="post-title">{{ post.title }}</h1>
+
+<div class="post-meta">
+    <span class="author">작성자: {{ post.author }}</span>
+    <span class="date">날짜: {{ post.created_at }}</span>
+    <span class="views">조회수: {{ post.views_count }}</span>
+</div>
+
+{% if post.category %}
+<div class="post-category">
+    카테고리: <a href="{% url 'blog_page:category_page' post.category.slug %}">{{ post.category }}</a>
+</div>
+{% endif %}
+
+<div class="post-status">
+    상태: {{ post.get_status_display }}
+</div>
+
+<div class="post-tags">
+    {% for tag in post.tags.all %}
+    <a href="{% url 'blog_page:tag_page' tag.slug %}" class="tag">{{ tag.name }}</a>
+    {% endfor %}
+</div>
+
+<div class="post-content">
+    {{ post.content|safe }}
+</div>
+
+{% if user.is_authenticated and user == post.author %}
+<div class="post-actions">
+    <a href="{% url 'blog_page:post_edit' post.pk %}" class="btn btn-primary">수정하기</a>
+    <form action="{% url 'blog_page:post_delete' post.pk %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger" onclick="return confirm('정말 삭제하시겠습니까?');">삭제하기</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="post-interactions">
+    <form action="{% url 'blog_page:like_post' post.pk %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" id="like-button">
+            {% if user.is_authenticated and post.is_liked_by %}
+            좋아요 취소
+            {% else %}
+            좋아요
+            {% endif %}
+        </button>
+    </form>
+    <span id="like-count">{{ post.total_likes }}</span>
+
+    <form action="{% url 'blog_page:toggle_bookmark' post.pk %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" id="bookmark-button">
+            {% if user.is_authenticated and post.is_bookmarked_by %}
+            북마크 취소
+            {% else %}
+            북마크
+            {% endif %}
+        </button>
+    </form>
+    <span id="bookmark-count">{{ post.bookmark_set.count }}</span>
+</div>
+
+<div class="comments-section">
+    <h3>댓글</h3>
+    <div id="comments-list">
+        {% for comment_item in comment_tree %}
+            {% include "blog_page/comment.html" with comment=comment_item.comment replies=comment_item.replies %}
         {% endfor %}
     </div>
-    <div class="post-content">
-        {{ post.content|safe }}
-    </div>
 
-    {% if user.is_authenticated and user == post.author %}
-    <div class="post-actions">
-        <a href="{% url 'blog_page:post_edit' post.pk %}" class="btn btn-primary">수정하기</a>
-        <form action="{% url 'blog_page:post_delete' post.pk %}" method="post" style="display: inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-default btn-squared btn-transparent-danger" onclick="return confirm('Are you sure you want to delete this post?');">
-                삭제하기
-            </button>
-        </form>
-    </div>
+    {% if user.is_authenticated %}
+    <form id="comment-form" action="{% url 'blog_page:comment_create' post.pk %}" method="post">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button type="submit">댓글 작성</button>
+    </form>
+    {% else %}
+    <p>댓글을 작성하려면 <a href="{% url 'accounts:login' %}">로그인</a>해주세요.</p>
     {% endif %}
-
-    
-
-    <div class="post-interactions">
-        <form method="post" action="{% url 'blog_page:like_post' post.pk %}">
-            {% csrf_token %}
-            <button type="submit">
-                {% if user.is_authenticated and post.is_liked_by %}
-                    좋아요 취소
-                {% else %}
-                    좋아요
-                {% endif %}
-            </button>
-        </form>
-        <span id="like-count">{{ post.total_likes }}</span>
-
-        <form method="post" action="{% url 'blog_page:toggle_bookmark' post.pk %}">
-            {% csrf_token %}
-            <button type="submit">
-            {% if user.is_authenticated and post.is_bookmarked_by %}
-                북마크 취소
-            {% else %}
-                북마크
-            {% endif %}
-            </button>
-        </form>
-        <span id="bookmark-count">{{ post.bookmark_set.count }}</span>
-    </div>
-
-    <div class="comments-section">
-        <h3>Comments</h3>
-    
-        <!-- 댓글 목록 -->
-        <div id="comments-list">
-            {% for comment in post.comment_set.all %}
-            <div class="comment" id="comment-{{ comment.pk }}">
-                <p>{{ comment.content }}</p>
-                <p>작성자: {{ comment.author }} | 날짜: {{ comment.created_at }}</p>
-                {% if user == comment.author %}
-                    <form method="post" action="{% url 'blog_page:comment_update' comment.pk %}">
-                        {% csrf_token %}
-                        <button type="submit">수정</button>
-                    </form>
-                    <form method="post" action="{% url 'blog_page:comment_delete' comment.pk %}">
-                        {% csrf_token %}
-                        <button type="submit">삭제</button>
-                    </form>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-    
-        <!-- 댓글 작성 폼 -->
-        <form method="post" action="{% url 'blog_page:comment_create' post.pk %}">
-            {% csrf_token %}
-            {{ comment_form.as_p }}
-            <button type="submit">댓글 작성</button>
-        </form>
-    </div>
-</article>
+</div>
 {% endblock %}
 
 {% block extra_js %}

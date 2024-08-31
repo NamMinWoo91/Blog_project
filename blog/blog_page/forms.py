@@ -1,5 +1,6 @@
 from django import forms
 from .models import Post, Category, Tag, Comment
+import json
 
 
 class PostForm(forms.ModelForm):
@@ -59,20 +60,28 @@ class TagForm(forms.ModelForm):
 
 
 class CommentForm(forms.ModelForm):
+    parent = forms.IntegerField(widget=forms.HiddenInput, required=False)
+
     class Meta:
         model = Comment
-        fields = ["content"]
+        fields = ["content", "parent"]
         widgets = {
-            "content": forms.Textarea(attrs={"class": "form-control"}),
+            "content": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["content"].required = False  # 필수 표시 제거
-        self.fields["content"].label = "댓글 내용"  # 레이블 변경
+    def clean_parent(self):
+        parent = self.cleaned_data.get("parent")
+        if parent:
+            try:
+                return Comment.objects.get(id=parent)
+            except Comment.DoesNotExist:
+                raise forms.ValidationError(
+                    json.dumps({"parent": ["부모 댓글이 존재하지 않습니다."]})
+                )
+        return None
 
-    def clean_content(self):
-        content = self.cleaned_data.get("content")
-        if not content:
-            raise forms.ValidationError("댓글 내용을 입력해야 합니다.")
-        return content
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.errors:
+            raise forms.ValidationError(json.dumps(self.errors))
+        return cleaned_data

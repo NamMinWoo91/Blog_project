@@ -1,0 +1,40 @@
+<div id="comment-{{ comment.pk }}" class="comment">
+    <p class="comment-content">{{ comment.content }}</p>
+    <p>작성자: {{ comment.author }} | 날짜: {{ comment.created_at }}</p>
+    
+    {% if user == comment.author %}
+    <button class="edit-comment" data-comment-id="{{ comment.pk }}">수정</button>
+    <form action="{% url 'blog_page:comment_delete' comment.pk %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="delete-comment" onclick="return confirm('정말 삭제하시겠습니까?');">삭제</button>
+    </form>
+    {% endif %}
+
+    <button class="reply-button" data-comment-id="{{ comment.pk }}">답글</button>
+
+    <div class="edit-form" id="edit-form-{{ comment.pk }}" style="display: none;">
+        <form action="{% url 'blog_page:comment_update' comment.pk %}" method="post">
+            {% csrf_token %}
+            <textarea name="content" rows="3" required>{{ comment.content }}</textarea>
+            <button type="submit">수정 완료</button>
+            <button type="button" class="cancel-edit">취소</button>
+        </form>
+    </div>
+
+    <div class="reply-form" id="reply-form-{{ comment.pk }}" style="display: none;">
+        <form action="{% url 'blog_page:comment_create' comment.post.pk %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="parent" value="{{ comment.pk }}">
+            <textarea name="content" rows="3" required></textarea>
+            <button type="submit">답글 작성</button>
+        </form>
+    </div>
+
+    {% if replies %}
+    <div class="replies">
+        {% for reply_item in replies %}
+            {% include "blog_page/comment.html" with comment=reply_item.comment replies=reply_item.replies %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
