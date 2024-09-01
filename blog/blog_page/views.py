@@ -87,26 +87,24 @@ class PostDetail(DetailView):
 
 def category_page(request, slug):
     category = get_object_or_404(Category, slug=slug)
+    posts = Post.objects.filter(category=category).order_by("-pk")
     context = {
-        "post_list": Post.objects.filter(category=category).order_by("-pk"),
-        "categories": Category.objects.all().order_by("-name"),
-        "no_category_post_count": Post.objects.filter(category=None).count(),
         "category": category,
-        "category_list": Category.objects.all().order_by("-name"),
+        "posts": posts,
+        "categories": Category.objects.all().order_by("-name"),
     }
-    return render(request, "blog_page/post_list.html", context)
+    return render(request, "blog_page/category_list.html", context)
+
+
+def tag_list(request):
+    tags = Tag.objects.all().order_by("name")
+    return render(request, "blog_page/tag_list.html", {"tags": tags})
 
 
 def tag_page(request, slug):
     tag = get_object_or_404(Tag, slug=slug)
-    context = {
-        "post_list": tag.post_set.all(),
-        "categories": Category.objects.all().order_by("-name"),
-        "no_category_post_count": Post.objects.filter(category=None).count(),
-        "tag": tag,
-        "category_list": Category.objects.all().order_by("-name"),
-    }
-    return render(request, "blog_page/post_list.html", context)
+    posts = Post.objects.filter(tags=tag).order_by("-created_at")
+    return render(request, "blog_page/tag_page.html", {"tag": tag, "posts": posts})
 
 
 class PostCreate(LoginRequiredMixin, CreateView):

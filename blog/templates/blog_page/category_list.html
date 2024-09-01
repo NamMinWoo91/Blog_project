@@ -1,19 +1,27 @@
 {% extends 'base.html' %}
-{% block title %}카테고리{% endblock %}
-
+{% block title %}{{ category.name }} - 카테고리{% endblock %}
 {% block content %}
+
 <div class="container">
-    <h1 class="page-title">카테고리</h1>
-    <ul class="category-list">
-    {% for category in categories %}
-        <li class="category-item">
-            <a href="{{ category.get_absolute_url }}" class="category-link">
-                {{ category.name }}
-            </a>
-        </li>
+    <h1 class="page-title">카테고리: {{ category.name }}</h1>
+    
+    <h2>이 카테고리의 글:</h2>
+    {% if posts %}
+        <ul>
+        {% for post in posts %}
+            <li><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>이 카테고리에 해당하는 글이 없습니다.</p>
+    {% endif %}
+
+    <h2>모든 카테고리:</h2>
+    {% for cat in categories %}
+        <a href="{% url 'blog_page:category_page' cat.slug %}" class="category-link">{{ cat.name }}</a>
     {% empty %}
-        <li class="no-categories">카테고리가 없습니다.</li>
+        <p>카테고리가 없습니다.</p>
     {% endfor %}
-    </ul>
 </div>
+
 {% endblock %}
