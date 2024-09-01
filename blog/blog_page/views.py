@@ -111,6 +111,7 @@ class PostCreate(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
     template_name = "blog_page/write_page.html"
+    success_url = reverse_lazy("blog_page:post_list")
 
     def form_valid(self, form):
         if self.request.user.is_authenticated:
@@ -129,15 +130,21 @@ class PostUpdate(LoginRequiredMixin, UpdateView):
     model = Post
     form_class = PostForm
     template_name = "blog_page/post_edit.html"
+    success_url = reverse_lazy("blog_page:post_list")
 
     def get_object(self, queryset=None):
-        # 기존의 get_object 메서드를 사용하여 객체를 가져옵니다.
         obj = super().get_object(queryset)
-        # 현재 로그인한 사용자가 객체의 작성자인지 확인합니다.
         if obj.author != self.request.user:
-            # 작성자가 아닌 경우 PermissionDenied 예외를 발생시킵니다.
             raise PermissionDenied
         return obj
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        return response
+
+    def get_initial(self):
+        initial = super().get_initial()
+        return initial
 
     def form_valid(self, form):
         response = super().form_valid(form)

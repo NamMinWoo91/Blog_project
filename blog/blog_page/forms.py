@@ -4,8 +4,10 @@ import json
 
 
 class PostForm(forms.ModelForm):
-    tags = forms.ModelMultipleChoiceField(
-        queryset=Tag.objects.all(), required=False, widget=forms.CheckboxSelectMultiple
+    tags = forms.CharField(
+        required=False,
+        help_text="쉼표로 구분하여 태그를 입력하세요.",
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
     class Meta:
@@ -19,12 +21,41 @@ class PostForm(forms.ModelForm):
             "tags",
             "status",
         ]
-        title = forms.CharField(widget=forms.TextInput(attrs={"id": "post-title"}))
-        content = forms.CharField(widget=forms.Textarea(attrs={"id": "post-content"}))
+        widgets = {
+            "title": forms.TextInput(
+                attrs={"id": "post-title", "class": "form-control"}
+            ),
+            "content": forms.Textarea(
+                attrs={"id": "post-content", "class": "form-control"}
+            ),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["category"].required = False
+        if self.instance.pk:
+            self.fields["tags"].initial = ", ".join(
+                [tag.name for tag in self.instance.tags.all()]
+            )
+
+    def clean_tags(self):
+        tag_string = self.cleaned_data.get("tags", "")
+        tag_names = [name.strip() for name in tag_string.split(",") if name.strip()]
+        return tag_names
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+            self.save_tags(instance)
+        return instance
+
+    def save_tags(self, instance):
+        instance.tags.clear()
+        tag_names = self.cleaned_data.get("tags", [])
+        for tag_name in tag_names:
+            tag, _ = Tag.objects.get_or_create(name=tag_name)
+            instance.tags.add(tag)
 
 
 class CategoryForm(forms.ModelForm):

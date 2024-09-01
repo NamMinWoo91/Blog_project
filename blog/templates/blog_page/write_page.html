@@ -23,6 +23,7 @@
         <div class="form-group">
             <label for="{{ form.tags.id_for_label }}">태그:</label>
             {{ form.tags }}
+            <small class="form-text text-muted">쉼표로 구분하여 여러 개의 태그를 입력할 수 있습니다. (예: 파이썬, 장고, 웹개발)</small>
         </div>
         <div class="form-group">
             <label for="{{ form.head_image.id_for_label }}">대표 이미지:</label>
@@ -40,17 +41,6 @@
         <a href="{% url 'blog_page:post_list' %}" class="btn btn-secondary">취소</a>
     </form>
 </div>
-{% if errors %}
-    <script>
-        var errorMessages = "";
-        {% for field, error_list in errors.items %}
-            {% for error in error_list %}
-                errorMessages += "{{ error }}\n";
-            {% endfor %}
-        {% endfor %}
-        alert(errorMessages);
-    </script>
-{% endif %}
 {% endblock %}
 
 {% block extra_js %}
