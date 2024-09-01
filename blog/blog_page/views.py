@@ -257,17 +257,22 @@ class CommentDelete(LoginRequiredMixin, View):
         return JsonResponse({"success": True})
 
 
-@require_POST
 @login_required
+@require_POST
 def like_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     like, created = Like.objects.get_or_create(user=request.user, post=post)
+
     if not created:
         like.delete()
-        liked = False
+
+    # 리퍼러 확인
+    referer = request.META.get("HTTP_REFERER")
+    if referer:
+        return redirect(referer)
     else:
-        liked = True
-    return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
+        # 리퍼러가 없으면 게시물 목록 페이지로 리다이렉트
+        return redirect(reverse("blog_page:post_list"))
 
 
 @login_required
@@ -285,7 +290,12 @@ def toggle_bookmark(request, post_id):
 
 
 @login_required
-def bookmarked_posts(request):
-    bookmarks = Bookmark.objects.filter(user=request.user).select_related("post")
-    context = {"bookmarked_posts": [bookmark.post for bookmark in bookmarks]}
-    return render(request, "blog_page/bookmarked_posts.html", context)
+@require_POST
+def bookmark_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    bookmark, created = Bookmark.objects.get_or_create(user=request.user, post=post)
+
+    if not created:
+        bookmark.delete()
+
+    return redirect("blog_page:post_detail", post_id=post.id)

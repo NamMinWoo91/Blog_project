@@ -128,6 +128,61 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    const likeButton = document.getElementById("like-button");
+    if (likeButton) {
+        likeButton.addEventListener("click", function () {
+            const postId = this.dataset.postId;
+            const likeCount = document.getElementById("like-count");
+
+            fetch(`/blog/like/${postId}/`, {
+                method: "POST",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.status === "success") {
+                        likeCount.textContent = data.likes_count;
+                        this.textContent = data.is_liked
+                            ? "좋아요 취소"
+                            : "좋아요";
+                        this.appendChild(likeCount);
+                    }
+                })
+                .catch((error) => console.error("Error:", error));
+        });
+    }
+
+    // 북마크 기능
+    const bookmarkButton = document.getElementById("bookmark-button");
+    if (bookmarkButton) {
+        bookmarkButton.addEventListener("click", function () {
+            const postId = this.dataset.postId;
+            const bookmarkCount = document.getElementById("bookmark-count");
+
+            fetch(`/blog/bookmark/${postId}/`, {
+                method: "POST",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.status === "success") {
+                        bookmarkCount.textContent = data.bookmarks_count;
+                        this.textContent = data.is_bookmarked
+                            ? "북마크 취소"
+                            : "북마크";
+                        this.appendChild(bookmarkCount);
+                    }
+                })
+                .catch((error) => console.error("Error:", error));
+        });
+    }
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {

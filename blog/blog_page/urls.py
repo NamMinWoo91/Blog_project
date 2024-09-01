@@ -11,10 +11,9 @@ from .views import (
     CommentDelete,
     category_page,
     tag_page,
-    like_post,
     toggle_bookmark,
-    bookmarked_posts,
 )
+from . import views
 
 app_name = "blog_page"
 
@@ -41,7 +40,7 @@ urlpatterns = [
     path("category/<slug:slug>/", category_page, name="category_page"),
     # Page to filter posts by tag
     path("tag/<str:slug>/", tag_page, name="tag_page"),
-    path("like/<int:post_id>/", like_post, name="like_post"),
+    path("like/<int:post_id>/", views.like_post, name="like_post"),
     path("bookmark/<int:post_id>/", toggle_bookmark, name="toggle_bookmark"),
-    path("bookmarks/", bookmarked_posts, name="bookmarked_posts"),
+    path("bookmark/<int:post_id>/", views.bookmark_post, name="bookmark_post"),
 ]

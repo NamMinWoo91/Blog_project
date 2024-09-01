@@ -21,20 +21,71 @@
 
     <div class="post-grid">
         {% for post in posts %}
-            <div class="post-card">
-                {% if post.head_image %}
-                    <img src="{{ post.head_image.url }}" alt="{{ post.title }}" class="post-image">
-                {% else %}
-                    <img src="{% static 'img/default-post-image.jpg' %}" alt="Default Image" class="post-image">
-                {% endif %}
-                <h2 class="post-title"><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
-                <p class="post-meta">by {{ post.author }} on {{ post.created_at }}</p>
-                <p class="post-excerpt">{{ post.content|truncatewords:30 }}</p>
+        <div class="post-card">
+            {% if post.head_image %}
+            <img src="{{ post.head_image.url }}" alt="{{ post.title }}" class="post-image">
+            {% else %}
+            <img src="{% static 'img/default-post-image.jpg' %}" alt="Default Image" class="post-image">
+            {% endif %}
+
+            <h2 class="post-title"><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+
+            <div class="post-meta">
+                <span class="author">{{ post.author }}</span>
+                <span class="date">{{ post.created_at|date:"Y-m-d H:i" }}</span>
+                <span class="views">조회수: {{ post.views_count }}</span>
             </div>
+
+            {% if post.category %}
+            <div class="post-category">
+                <a href="{% url 'blog_page:category_page' post.category.slug %}">{{ post.category }}</a>
+            </div>
+            {% endif %}
+
+            <div class="post-status">
+                상태: {{ post.get_status_display }}
+            </div>
+
+            <div class="post-tags">
+                {% for tag in post.tags.all %}
+                <a href="{% url 'blog_page:tag_page' tag.slug %}" class="tag">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+
+            <div class="post-excerpt">
+                {{ post.content|truncatewords:30|safe }}
+            </div>
+
+            <div class="post-interactions">
+                <form action="{% url 'blog_page:like_post' post.pk %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="like-button">
+                        {% if user.is_authenticated and post.is_liked_by %}
+                        좋아요 취소
+                        {% else %}
+                        좋아요
+                        {% endif %}
+                        <span class="like-count">{{ post.total_likes }}</span>
+                    </button>
+                </form>
+
+                <form action="{% url 'blog_page:toggle_bookmark' post.pk %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="bookmark-button">
+                        {% if user.is_authenticated and post.is_bookmarked_by %}
+                        북마크 취소
+                        {% else %}
+                        북마크
+                        {% endif %}
+                        <span class="bookmark-count">{{ post.bookmark_set.count }}</span>
+                    </button>
+                </form>
+            </div>
+        </div>
         {% empty %}
-            <p>게시글이 없습니다.</p>
+        <p>게시글이 없습니다.</p>
         {% endfor %}
     </div>
 </div>
-
 {% endblock %}
