@@ -4,20 +4,64 @@
 {% block title %}프로필 수정{% endblock %}
 
 {% block content %}
-<div class="auth-form">
-    <h2>프로필 수정</h2>
-    <form method="post" enctype="multipart/form-data">
+<div class="profile-edit-container">
+    <h1 class="page-title">프로필 수정</h1>
+
+    <form method="post" enctype="multipart/form-data" class="profile-edit-form">
         {% csrf_token %}
+        
         {% for field in form %}
             <div class="form-group">
                 {{ field.label_tag }}
                 {{ field }}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
                 {% if field.errors %}
-                    <small class="error">{{ field.errors|striptags }}</small>
+                    <div class="error-message">
+                        {% for error in field.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
         {% endfor %}
-        <button type="submit">프로필 수정</button>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">프로필 수정</button>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">취소</a>
+        </div>
     </form>
+
+    <div class="password-change-link">
+        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-primary">비밀번호 변경</a>
+    </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const imageInput = document.getElementById('id_profile_image');
+        const imagePreview = document.createElement('img');
+        imagePreview.style.maxWidth = '200px';
+        imagePreview.style.marginTop = '10px';
+
+        if (imageInput) {
+            imageInput.parentNode.insertBefore(imagePreview, imageInput.nextSibling);
+
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+

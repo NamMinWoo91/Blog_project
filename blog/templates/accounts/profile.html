@@ -6,34 +6,74 @@
 {% block content %}
 <div class="profile-container">
     <div class="profile-header">
-        {% if user.profile_image %}
-            <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" class="profile-image">
-        {% else %}
-            <img src="{% static 'img/default-profile.png' %}" alt="Default profile" class="profile-image">
-        {% endif %}
-        <h2 class="profile-name">{{ user.username }}</h2>
+        <div class="profile-image-container">
+            {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" class="profile-image">
+            {% else %}
+                <img src="{% static 'img/default-profile.png' %}" alt="Default profile" class="profile-image">
+            {% endif %}
+        </div>
+        <div class="profile-info">
+            <h1 class="profile-name">{{ user.username }}</h1>
+            {% if user.nickname %}
+                <p class="profile-nickname">{{ user.nickname }}</p>
+            {% endif %}
+        </div>
     </div>
+
     <div class="profile-details">
-        <p><strong>이메일:</strong> {{ user.email }}</p>
-        {% if user.bio %}<p><strong>자기소개:</strong> {{ user.bio }}</p>{% endif %}
-        {% if user.location %}<p><strong>위치:</strong> {{ user.location }}</p>{% endif %}
-        {% if user.website %}<p><strong>웹사이트:</strong> <a href="{{ user.website }}" target="_blank">{{ user.website }}</a></p>{% endif %}
+        <div class="detail-item">
+            <span class="detail-label">이메일:</span>
+            <span class="detail-value">{{ user.email }}</span>
+        </div>
+        {% if user.bio %}
+            <div class="detail-item">
+                <span class="detail-label">자기소개:</span>
+                <span class="detail-value">{{ user.bio }}</span>
+            </div>
+        {% endif %}
+        {% if user.location %}
+            <div class="detail-item">
+                <span class="detail-label">위치:</span>
+                <span class="detail-value">{{ user.location }}</span>
+            </div>
+        {% endif %}
+        {% if user.website %}
+            <div class="detail-item">
+                <span class="detail-label">웹사이트:</span>
+                <span class="detail-value"><a href="{{ user.website }}" target="_blank">{{ user.website }}</a></span>
+            </div>
+        {% endif %}
+        {% if user.birth_date %}
+            <div class="detail-item">
+                <span class="detail-label">생년월일:</span>
+                <span class="detail-value">{{ user.birth_date|date:"Y년 m월 d일" }}</span>
+            </div>
+        {% endif %}
     </div>
+
     <div class="profile-actions">
         <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary">프로필 수정</a>
         <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary">비밀번호 변경</a>
     </div>
 
-    <h3>내가 작성한 글</h3>
-    <div class="user-posts">
-        {% for post in user_posts %}
-            <div class="post-item">
-                <h4><a href="{% url 'blog_page:post_detail' post.pk %}">{{ post.title }}</a></h4>
-                <p>작성일: {{ post.created_at|date:"Y-m-d H:i" }}, 상태: {{ post.get_status_display }}</p>
+    <div class="user-posts-section">
+        <h2>내가 작성한 글</h2>
+        {% if user_posts %}
+            <div class="user-posts">
+                {% for post in user_posts %}
+                    <div class="post-item">
+                        <h3><a href="{% url 'blog_page:post_detail' post.pk %}">{{ post.title }}</a></h3>
+                        <p class="post-meta">
+                            작성일: {{ post.created_at|date:"Y-m-d H:i" }},
+                            상태: {{ post.get_status_display }}
+                        </p>
+                    </div>
+                {% endfor %}
             </div>
-        {% empty %}
-            <p>작성한 글이 없습니다.</p>
-        {% endfor %}
+        {% else %}
+            <p class="no-posts">작성한 글이 없습니다.</p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
