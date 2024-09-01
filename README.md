@@ -24,8 +24,8 @@
   - [6.1 config](#61-config)
   - [6.2 accounts](#62-accounts)
   - [6.3 blog\_page](#63-blog_page)
-- [7. 배포](#7-배포)
-- [8. 배운점](#8-배운점)
+- [8. 트러블 슈팅](#8-트러블-슈팅)
+- [9. 배운점](#9-배운점)
 
 # 1. 프로젝트 개요
 ## 1.1 프로젝트 소개
@@ -321,7 +321,63 @@ erDiagram
 
 # 5. 사용 화면 및 주요 기능
 ## 5.1 사용 화면
-[이미지 관련 내용 유지]
+<table border="1" style="width:100%;">
+  <colgroup>
+    <col style="width: 33%;">
+    <col style="width: 33%;">
+    <col style="width: 33%;">
+  </colgroup>
+    <tbody>
+        <tr>
+            <td>첫 화면</td>
+            <td>로그인</td>
+            <td>회원 가입</td>
+        </tr>
+        <tr>
+            <td>
+                <img src="README_img\main.png" width="100%"/>
+            </td>
+            <td>
+                <img src="README_img\login.png" width="100%"/>
+            </td>
+                       <td>
+                <img src="README_img\signup.png" width="100%"/>
+            </td>
+        </tr>
+                <tr>
+            <td>비밀번호 변경</td>
+            <td>게시글 상세 화면</td>
+            <td>게시글 생성</td>
+        </tr>
+        <tr>
+            <td>
+                <img src="README_img\passwrod_change.png" width="100%"/>
+            </td>
+            <td>
+                <img src="README_img\post_detail.png" width="100%"/>
+            </td>
+                       <td>
+                <img src="README_img\post_create.png" width="100%"/>
+            </td>
+        </tr>
+                <tr>
+            <td>게시글 리스트화면</td>
+            <td>유저 프로필</td>
+            <td>프로필 수정</td>
+        </tr>
+        <tr>
+            <td>
+                <img src="README_img\post_list.png" width="100%"/>
+            </td>
+            <td>
+                <img src="README_img\profile.png" width="100%"/>
+            </td>
+                       <td>
+                <img src="README_img\profile_edit.png" width="100%"/>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
 ## 5.2 주요 기능
 
@@ -430,22 +486,21 @@ erDiagram
 ## 6.3 blog_page
 | URL 패턴                              | 연결된 뷰                              | 연결된 Template                    | 설명                                |
 |---------------------------------------|-----------------------------------------|-------------------------------------|-------------------------------------|
-| `/`                                   | `PostList.as_view()`                    | `blog_page/post_list.html`          | 게시글 목록 페이지                  |
-| `<int:pk>/`                           | `PostDetail.as_view()`                  | `blog_page/post_detail.html`        | 게시글 상세보기 페이지              |
-| `write/`                              | `PostCreate.as_view()`                  | `blog_page/write_page.html`         | 게시글 작성 페이지                  |
-| `edit/<int:pk>/`                      | `PostUpdate.as_view()`                  | `blog_page/post_edit.html`          | 게시글 수정 페이지                  |
+| `/`                                   | `PostList.as_view()`                    | `blog/post_list.html`          | 게시글 목록 페이지                  |
+| `<int:pk>/`                           | `PostDetail.as_view()`                  | `blog/post_detail.html`        | 게시글 상세보기 페이지              |
+| `write/`                              | `PostCreate.as_view()`                  | `blog/write_page.html`         | 게시글 작성 페이지                  |
+| `edit/<int:pk>/`                      | `PostUpdate.as_view()`                  | `blog/post_edit.html`          | 게시글 수정 페이지                  |
 | `delete/<int:pk>/`                    | `PostDelete.as_view()`                  |                                     | 게시글 삭제 기능                    |
-| `search/`                             | `PostSearchView.as_view()`              | `blog_page/post_search.html`        | 게시글 검색 결과 페이지             |
+| `search/`                             | `PostSearchView.as_view()`              | `blog/post_search.html`        | 게시글 검색 결과 페이지             |
 | `<int:pk>/comment/`                   | `CommentCreate.as_view()`               |                                     | 댓글 작성 기능                      |
 | `comment/<int:pk>/update/`            | `CommentUpdate.as_view()`               |                                     | 댓글 수정 기능                      |
 | `comment/<int:pk>/delete/`            | `CommentDelete.as_view()`               |                                     | 댓글 삭제 기능                      |
-| `category/<slug:slug>/`               | `category_page`                         | `blog_page/category_list.html`      | 카테고리별 게시글 목록 페이지       |
-| `tags/`                               | `tag_list`                              | `blog_page/tag_list.html`           | 전체 태그 목록 페이지               |
-| `tag/<str:slug>/`                     | `tag_page`                              | `blog_page/tag_page.html`           | 태그별 게시글 목록 페이지           |
+| `category/<slug:slug>/`               | `category_page`                         | `blog/category_list.html`      | 카테고리별 게시글 목록 페이지       |
+| `tag/<str:slug>/`                     | `tag_page`                              | `blog/tag_page.html`           | 태그별 게시글 목록 페이지           |
 | `like/<int:post_id>/`                 | `like_post`                             |                                     | 게시글 좋아요 기능                  |
 | `bookmark/<int:post_id>/`             | `toggle_bookmark`                       |                                     | 게시글 북마크 기능                  |
 
-- blog_page 기능 명세
+- blog 기능 명세
     - **게시글 목록 뷰 (PostList)**
         - **설명:** 게시글 목록을 표시하는 페이지입니다.
         - **기능:** 게시글 검색, 카테고리 필터링, 페이지네이션을 지원합니다.
@@ -466,16 +521,37 @@ erDiagram
         - **기능:** 특정 카테고리나 태그에 속한 게시글 목록을 제공합니다.
     - **좋아요 및 북마크 기능**
         - **설명:** 게시글에 대한 좋아요 표시와 북마크 기능을 제공합니다.
-        - **기능:** 사용자별로 좋아요와 북마크 상태를 관리합니다.
+        - **기능:** 사용자별로 북마크 상태를 관리합니다.
 
-# 7. 배포
-- 본 프로젝트는 현재 로컬 개발 환경에서 실행되고 있습니다.
-- 향후 AWS EC2 또는 Heroku를 이용한 배포를 계획 중입니다.
+# 8. 트러블 슈팅
 
-# 8. 배운점
-- Django 프레임워크의 구조와 작동 방식에 대한 깊이 있는 이해를 얻었습니다.
-- 사용자 인증 및 권한 관리의 중요성과 구현 방법을 학습했습니다.
-- Git을 이용한 협업 과정과 코드 버전 관리의 중요성을 체험했습니다.
-- 프론트엔드와 백엔드의 연동, 특히 AJAX를 이용한 비동기 처리 방식을 익혔습니다.
-- 데이터베이스 모델링과 쿼리 최적화의 중요성을 인식하게 되었습니다.
-- 프로젝트 기획부터 개발, 테스트까지 전체 개발 생명주기를 경험했습니다.
+프로젝트를 진행하면서 다음과 같은 문제들을 겪고 해결했습니다:
+
+1. **댓글 비동기 처리 문제**
+   - 문제: 댓글 작성 시 페이지 전체가 새로고침되어 사용자 경험이 저하되었습니다.
+   - 해결: AJAX를 이용한 비동기 처리로 변경하여 페이지 새로고침 없이 댓글이 추가되도록 구현했습니다.
+   - 학습: JavaScript와 Django의 연동, RESTful API 설계의 중요성을 깨달았습니다.
+
+2. **사용자 인증 보안**
+   - 문제: 초기에 단순한 인증 방식으로 인해 보안 취약점이 있었습니다. ex(url 주소를 치면 들어가지는 점)
+   - 해결: Django의 내장 인증 시스템을 활용하고, 비밀번호 해싱, CSRF 보호 등을 적용했습니다.
+   - 학습: 웹 애플리케이션 보안의 중요성과 Django의 보안 기능에 대해 깊이 이해하게 되었습니다.
+
+3. **태그 및 카테고리 관리**
+   - 문제: 사용자가 입력한 태그와 카테고리의 중복 및 대소문자 구분 문제가 있었습니다.
+   - 해결: 태그와 카테고리 입력 시 자동으로 소문자 변환 및 중복 체크 로직을 구현했습니다.
+   - 학습: 데이터 정규화와 사용자 입력 처리의 중요성을 배웠습니다.
+
+4. **페이지네이션 구현**
+   - 문제: 게시글이 많아질수록 페이지 로딩 속도가 느려졌습니다.
+   - 해결: Django의 Pagination 클래스를 활용하여 효율적인 페이지네이션을 구현했습니다.
+   - 학습: 대량의 데이터 처리 방법과 사용자 경험 개선 기법을 익혔습니다.
+
+5. **검색 기능 성능 개선**
+   - 문제: 검색 시 전체 데이터베이스를 스캔하여 속도가 느렸습니다.
+   - 해결: 데이터베이스 인덱싱을 적용하고, Django의 Q 객체를 활용하여 복잡한 검색 쿼리를 최적화했습니다.
+   - 학습: 데이터베이스 최적화 기법과 효율적인 검색 알고리즘 구현 방법을 익혔습니다.
+
+
+# 9. 배운점
+- 처음에는 아무것도 모르니까 일단 계획말고 시작하자 였는 데 계획의 중요성을 다시한번 깨닫습니다. 
