@@ -40,19 +40,6 @@ gantt
 ```
 
 # URL 관계도
-```mermaid
-graph TD;
-    A[Main Page] --> B[Blog List Page]
-    A --> C[Register Page]
-    A --> D[Login Page]
-    B --> E[Blog Detail Page]
-    B --> F[Blog Write Page]
-    B --> G[Blog Edit Page]
-    B --> H[Blog Delete Page]
-    B --> I[Blog Search Page]
-    E --> F
-    E --> H
-    C --> D
+
 ```
 # ERD
-![alt text](image.png)
