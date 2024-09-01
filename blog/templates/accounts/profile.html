@@ -75,5 +75,24 @@
             <p class="no-posts">작성한 글이 없습니다.</p>
         {% endif %}
     </div>
+
+    <div class="bookmarked-posts-section">
+        <h2>북마크한 글</h2>
+        {% if bookmarked_posts %}
+            <div class="bookmarked-posts">
+                {% for post in bookmarked_posts %}
+                    <div class="post-item">
+                        <h3><a href="{% url 'blog_page:post_detail' post.pk %}">{{ post.title }}</a></h3>
+                        <p class="post-meta">
+                            작성자: {{ post.author.username }},
+                            작성일: {{ post.created_at|date:"Y-m-d H:i" }}
+                        </p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-posts">북마크한 글이 없습니다.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

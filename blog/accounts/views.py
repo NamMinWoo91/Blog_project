@@ -12,7 +12,7 @@ from .forms import (
 )
 from .models import CustomUser
 from django.views.generic import DetailView
-from blog_page.models import Post
+from blog_page.models import Post, Bookmark
 
 
 class RegisterView(CreateView):
@@ -58,17 +58,20 @@ class CustomPasswordChangeView(PasswordChangeView):
 
 class ProfileView(LoginRequiredMixin, DetailView):
     model = CustomUser
-    template_name = "accounts/profile.html"  # 프로필 페이지 템플릿
-    context_object_name = "user"  # 템플릿에서 사용할 컨텍스트 이름
+    template_name = "accounts/profile.html"
+    context_object_name = "user"
 
     def get_object(self):
-        return self.request.user  # 현재 로그인한 사용자
+        return self.request.user
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["user_posts"] = Post.objects.filter(author=self.request.user).order_by(
             "-created_at"
         )
+        context["bookmarked_posts"] = Post.objects.filter(
+            bookmark__user=self.request.user
+        ).order_by("-bookmark__created_at")
         return context
 
 
