@@ -76,6 +76,7 @@ class Tag(models.Model):
     is_public = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
+    description = models.TextField(blank=True, null=True)  # 이 줄을 수정 or 추가
 
     def save(self, *args, **kwargs):
         if not self.slug:

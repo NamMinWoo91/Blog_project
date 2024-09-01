@@ -35,7 +35,7 @@ class CustomAuthenticationForm(AuthenticationForm):
     pass
 
 
-class CustomUserChangeForm(UserChangeForm):
+class CustomUserChangeForm(forms.ModelForm):
     email = forms.EmailField(required=True)
     nickname = forms.CharField(max_length=30, required=False)
     profile_image = forms.ImageField(required=False)

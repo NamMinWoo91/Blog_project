@@ -6,15 +6,15 @@ from .views import (
     PostUpdate,
     PostDelete,
     PostSearchView,
-    delete_comment,
-    new_comment,
+    CommentCreate,
     CommentUpdate,
+    CommentDelete,
     category_page,
+    tag_list,
     tag_page,
-    like_post,
     toggle_bookmark,
-    bookmarked_posts,
 )
+from . import views
 
 app_name = "blog_page"
 
@@ -32,20 +32,17 @@ urlpatterns = [
     # Search posts
     path("search/", PostSearchView.as_view(), name="search"),
     # Page for creating a new comment on a post
-    path("<int:pk>/comment/", new_comment, name="new_comment"),
-    # Page for updating an existing comment
-    path("edit/comment/<int:pk>/", CommentUpdate.as_view(), name="comment_update"),
-    # Page for deleting a comment
-    path("delete/comment/<int:pk>/", delete_comment, name="delete_comment"),
+    path("<int:pk>/comment/", CommentCreate.as_view(), name="comment_create"),
+    path("comment/<int:pk>/update/", CommentUpdate.as_view(), name="comment_update"),
+    path("comment/<int:pk>/delete/", CommentDelete.as_view(), name="comment_delete"),
     # Page for replying to a comment (대댓글)
-    path(
-        "<int:pk>/comment/<int:parent_comment_id>/", new_comment, name="reply_comment"
-    ),
+    # 대댓글 현재 미정
     # Page to filter posts by category
     path("category/<slug:slug>/", category_page, name="category_page"),
     # Page to filter posts by tag
-    path("tag/<str:slug>/", tag_page, name="tag_page"),
-    path("like/<int:post_id>/", like_post, name="like_post"),
+    path("tags/", views.tag_list, name="tag_list"),
+    path("tag/<str:slug>/", views.tag_page, name="tag_page"),
+    path("like/<int:post_id>/", views.like_post, name="like_post"),
     path("bookmark/<int:post_id>/", toggle_bookmark, name="toggle_bookmark"),
-    path("bookmarks/", bookmarked_posts, name="bookmarked_posts"),
+    path("bookmark/<int:post_id>/", views.bookmark_post, name="bookmark_post"),
 ]
