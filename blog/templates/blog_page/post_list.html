@@ -1,16 +1,20 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}블로그 게시물{% endblock %}
-
 {% block content %}
+
 <div class="container">
     <h1 class="page-title">블로그 게시물</h1>
+
     <a href="{% url 'blog_page:post_create' %}" class="btn btn-primary">글 작성하기</a>
-    
-    <form method="get" action="{% url 'blog_page:search' %}" class="search-form">
-        <input type="text" name="q" placeholder="검색어를 입력하세요" value="{{ search_keyword }}">
-        <select name="search_by">
-            <option value="title" {% if search_by == 'title' %}selected{% endif %}>글 제목</option>
-            <option value="category" {% if search_by == 'category' %}selected{% endif %}>카테고리</option>
+
+    <form action="{% url 'blog_page:search' %}" method="get" class="search-form">
+        <input type="text" name="q" placeholder="글 제목">
+        <select name="category">
+            <option value="">카테고리</option>
+            {% for category in categories %}
+                <option value="{{ category.slug }}">{{ category.name }}</option>
+            {% endfor %}
         </select>
         <button type="submit">검색</button>
     </form>
@@ -18,15 +22,19 @@
     <div class="post-grid">
         {% for post in posts %}
             <div class="post-card">
+                {% if post.head_image %}
+                    <img src="{{ post.head_image.url }}" alt="{{ post.title }}" class="post-image">
+                {% else %}
+                    <img src="{% static 'img/default-post-image.jpg' %}" alt="Default Image" class="post-image">
+                {% endif %}
                 <h2 class="post-title"><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
                 <p class="post-meta">by {{ post.author }} on {{ post.created_at }}</p>
-                <!-- 추가적인 포스트 정보 -->
+                <p class="post-excerpt">{{ post.content|truncatewords:30 }}</p>
             </div>
         {% empty %}
-            <p class="no-posts">게시글이 없습니다.</p>
+            <p>게시글이 없습니다.</p>
         {% endfor %}
     </div>
-
-    <!-- 페이지네이션 -->
 </div>
+
 {% endblock %}
