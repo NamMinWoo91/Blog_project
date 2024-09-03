@@ -9,8 +9,8 @@ from .views import (
     CommentCreate,
     CommentUpdate,
     CommentDelete,
-    category_page,
     toggle_bookmark,
+    category_page,
 )
 from . import views
 

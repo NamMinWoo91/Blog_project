@@ -9,7 +9,7 @@ from django.views.generic import (
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.text import slugify
 from django.db.models import Q
 from django.contrib import messages
@@ -24,28 +24,12 @@ from django.views import View
 
 
 class PostList(ListView):
-    """
-    게시물 목록을 보여주는 뷰입니다.
-
-    Attributes:
-        model: 사용할 모델
-        ordering: 정렬 기준
-        template_name: 사용할 템플릿 파일 이름
-        context_object_name: 템플릿에서 사용할 객체 리스트의 이름
-    """
-
     model = Post
     ordering = "-pk"
     template_name = "blog_page/post_list.html"
     context_object_name = "posts"
 
     def get_context_data(self, **kwargs):
-        """
-        템플릿에 전달할 컨텍스트 데이터를 설정합니다.
-
-        Returns:
-            dict: 추가된 컨텍스트 데이터
-        """
         context = super().get_context_data(**kwargs)
         context["category_list"] = Category.objects.all().order_by("-name")
         context["no_category_post_count"] = Post.objects.filter(category=None).count()
@@ -53,13 +37,6 @@ class PostList(ListView):
         return context
 
     def get_queryset(self):
-        """
-        표시할 게시물 쿼리셋을 반환합니다.
-        검색어가 있는 경우 해당 검색어로 필터링합니다.
-
-        Returns:
-            QuerySet: 필터링된 게시물 쿼리셋
-        """
         queryset = super().get_queryset().filter(status="published")
         search_keyword = self.request.GET.get("q")
         if search_keyword:
@@ -72,59 +49,28 @@ class PostList(ListView):
 
 
 class PostDetail(DetailView):
-    """
-    개별 게시물의 상세 정보를 보여주는 뷰입니다.
-
-    Attributes:
-        model: 사용할 모델
-        template_name: 사용할 템플릿 파일 이름
-    """
-
     model = Post
     template_name = "blog_page/post_detail.html"
 
     def get_object(self, queryset=None):
-        """
-        조회수를 증가시키고 게시물 객체를 반환합니다.
-
-        Returns:
-            Post: 조회된 게시물 객체
-        """
         post = super().get_object(queryset)
         post.views_count += 1
         post.save(update_fields=["views_count"])
         return post
 
     def get_context_data(self, **kwargs):
-        """
-        템플릿에 전달할 컨텍스트 데이터를 설정합니다.
-
-        Returns:
-            dict: 추가된 컨텍스트 데이터
-        """
         context = super().get_context_data(**kwargs)
         context["categories"] = Category.objects.all().order_by("-name")
         context["no_category_post_count"] = Post.objects.filter(category=None).count()
         context["comment_form"] = CommentForm
         context["current_user"] = self.request.user
-
         comments = self.object.comment_set.filter(parent=None).order_by("created_at")
         comment_tree = self.build_comment_tree(comments)
         context["comment_tree"] = comment_tree
-
         context["related_posts"] = self.object.related_posts.all()
         return context
 
     def build_comment_tree(self, comments):
-        """
-        댓글 트리를 구성합니다.
-
-        Args:
-            comments (QuerySet): 상위 댓글 쿼리셋
-
-        Returns:
-            list: 댓글 트리 구조
-        """
         comment_tree = []
         for comment in comments:
             comment_dict = {
@@ -138,83 +84,46 @@ class PostDetail(DetailView):
 
 
 def category_page(request, slug):
-    """
-    특정 카테고리의 게시물 목록을 보여주는 뷰 함수입니다.
-
-    Args:
-        request (HttpRequest): HTTP 요청 객체
-        slug (str): 카테고리 슬러그
-
-    Returns:
-        HttpResponse: 렌더링된 카테고리 페이지
-    """
     category = get_object_or_404(Category, slug=slug)
     posts = Post.objects.filter(category=category).order_by("-pk")
     context = {
+        "post_list": Post.objects.filter(category=category).order_by("-pk"),
+        "categories": Category.objects.all().order_by("-name"),
+        "no_category_post_count": Post.objects.filter(category=None).count(),
         "category": category,
+        "category_list": Category.objects.all().order_by("-name"),
         "posts": posts,
         "categories": Category.objects.all().order_by("-name"),
     }
+    return render(request, "blog_page/post_list.html", context)
     return render(request, "blog_page/category_list.html", context)
 
 
 def tag_list(request):
-    """
-    모든 태그 목록을 보여주는 뷰 함수입니다.
-
-    Args:
-        request (HttpRequest): HTTP 요청 객체
-
-    Returns:
-        HttpResponse: 렌더링된 태그 목록 페이지
-    """
     tags = Tag.objects.all().order_by("name")
     return render(request, "blog_page/tag_list.html", {"tags": tags})
 
 
 def tag_page(request, slug):
-    """
-    특정 태그가 달린 게시물 목록을 보여주는 뷰 함수입니다.
-
-    Args:
-        request (HttpRequest): HTTP 요청 객체
-        slug (str): 태그 슬러그
-
-    Returns:
-        HttpResponse: 렌더링된 태그 페이지
-    """
     tag = get_object_or_404(Tag, slug=slug)
+    context = {
+        "post_list": tag.post_set.all(),
+        "categories": Category.objects.all().order_by("-name"),
+        "no_category_post_count": Post.objects.filter(category=None).count(),
+        "tag": tag,
+        "category_list": Category.objects.all().order_by("-name"),
+    }
+    return render(request, "blog_page/post_list.html", context)
     posts = Post.objects.filter(tags=tag).order_by("-created_at")
     return render(request, "blog_page/tag_page.html", {"tag": tag, "posts": posts})
 
 
 class PostCreate(LoginRequiredMixin, CreateView):
-    """
-    새 게시물을 작성하는 뷰입니다.
-
-    Attributes:
-        model: 사용할 모델
-        form_class: 사용할 폼 클래스
-        template_name: 사용할 템플릿 파일 이름
-        success_url: 성공 시 리다이렉트할 URL
-    """
-
     model = Post
     form_class = PostForm
     template_name = "blog_page/write_page.html"
-    success_url = reverse_lazy("blog_page:post_list")
 
     def form_valid(self, form):
-        """
-        폼이 유효할 때 실행되는 메서드입니다.
-        현재 로그인한 사용자를 작성자로 설정합니다.
-
-        Args:
-            form (PostForm): 제출된 폼
-
-        Returns:
-            HttpResponse: 폼 처리 결과
-        """
         if self.request.user.is_authenticated:
             form.instance.author = self.request.user
             return super().form_valid(form)
@@ -222,63 +131,26 @@ class PostCreate(LoginRequiredMixin, CreateView):
             return redirect("/blog/")
 
     def form_invalid(self, form):
-        """
-        폼이 유효하지 않을 때 실행되는 메서드입니다.
-
-        Args:
-            form (PostForm): 유효하지 않은 폼
-
-        Returns:
-            HttpResponse: 오류 메시지가 포함된 응답
-        """
         context = self.get_context_data(form=form)
         context["errors"] = form.errors
         return self.render_to_response(context)
 
 
 class PostUpdate(LoginRequiredMixin, UpdateView):
-    """
-    기존 게시물을 수정하는 뷰입니다.
-
-    Attributes:
-        model: 사용할 모델
-        form_class: 사용할 폼 클래스
-        template_name: 사용할 템플릿 파일 이름
-        success_url: 성공 시 리다이렉트할 URL
-    """
-
     model = Post
     form_class = PostForm
     template_name = "blog_page/post_edit.html"
-    success_url = reverse_lazy("blog_page:post_list")
 
     def get_object(self, queryset=None):
-        """
-        수정할 게시물 객체를 반환합니다.
-        작성자만 수정할 수 있도록 확인합니다.
-
-        Returns:
-            Post: 수정할 게시물 객체
-
-        Raises:
-            PermissionDenied: 권한이 없는 경우
-        """
+        # 기존의 get_object 메서드를 사용하여 객체를 가져옵니다.
         obj = super().get_object(queryset)
+        # 현재 로그인한 사용자가 객체의 작성자인지 확인합니다.
         if obj.author != self.request.user:
+            # 작성자가 아닌 경우 PermissionDenied 예외를 발생시킵니다.
             raise PermissionDenied
         return obj
 
     def form_valid(self, form):
-        """
-        폼이 유효할 때 실행되는 메서드입니다.
-        태그를 처리합니다.
-
-        Args:
-            form (PostForm): 제출된 폼
-
-        Returns:
-            HttpResponse: 폼 처리 결과
-        """
         response = super().form_valid(form)
         self.object.tags.clear()
         for tag_name in form.cleaned_data["tags"]:
@@ -287,36 +159,17 @@ class PostUpdate(LoginRequiredMixin, UpdateView):
         return response
 
     def get_initial(self):
-        """
-        폼의 초기 데이터를 설정합니다.
-
-        Returns:
-            dict: 초기 데이터
-        """
         initial = super().get_initial()
         initial["tags"] = ", ".join(tag.name for tag in self.object.tags.all())
         return initial
 
 
 class PostDelete(LoginRequiredMixin, DeleteView):
-    """
-    게시물을 삭제하는 뷰입니다.
-
-    Attributes:
-        model: 사용할 모델
-        success_url: 성공 시 리다이렉트할 URL
-    """
-
     model = Post
+    # template_name = "blog_page/post_delete.html"
     success_url = reverse_lazy("blog_page:post_list")
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        요청을 처리하기 전에 권한을 확인합니다.
-
-        Returns:
-            HttpResponse: 처리 결과
-        """
         post = self.get_object()
         if post.author != request.user:
             messages.error(request, "You do not have permission to delete this post.")
@@ -324,17 +177,10 @@ class PostDelete(LoginRequiredMixin, DeleteView):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        """
-        POST 요청을 처리합니다.
-
-        Returns:
-            HttpResponse: 삭제 처리 결과
-        """
         post = self.get_object()
         if post.author != request.user:
             messages.error(request, "You do not have permission to delete this post.")
             return HttpResponseRedirect(self.success_url)
-
         self.object = post
         self.object.delete()
         messages.success(request, "Post has been successfully deleted.")
@@ -342,26 +188,11 @@ class PostDelete(LoginRequiredMixin, DeleteView):
 
 
 class PostSearchView(ListView):
-    """
-    게시물 검색 결과를 보여주는 뷰입니다.
-
-    Attributes:
-        model: 사용할 모델
-        template_name: 사용할 템플릿 파일 이름
-        context_object_name: 템플릿에서 사용할 객체 리스트의 이름
-    """
-
     model = Post
     template_name = "blog_page/post_search.html"
     context_object_name = "post_list"
 
     def get_queryset(self):
-        """
-        검색 결과 쿼리셋을 반환합니다.
-
-        Returns:
-            QuerySet: 검색된 게시물 쿼리셋
-        """
         query = self.request.GET.get("q")
         if query:
             return Post.objects.filter(
@@ -372,12 +203,6 @@ class PostSearchView(ListView):
         return Post.objects.none()
 
     def get_context_data(self, **kwargs):
-        """
-        템플릿에 전달할 컨텍스트 데이터를 설정합니다.
-
-        Returns:
-            dict: 추가된 컨텍스트 데이터
-        """
         context = super().get_context_data(**kwargs)
         context["search_keyword"] = self.request.GET.get("q", "")
         return context
@@ -388,19 +213,7 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(require_POST, name="dispatch")
 class CommentCreate(LoginRequiredMixin, View):
-    """댓글을 생성하는 뷰입니다."""
-
     def post(self, request, pk):
-        """
-        POST 요청을 처리하여 댓글을 생성합니다.
-
-        Args:
-            request (HttpRequest): HTTP 요청 객체
-            pk (int): 게시물의 기본 키
-
-        Returns:
-            JsonResponse: 처리 결과를 JSON 형식으로 반환
-        """
         try:
             post = get_object_or_404(Post, pk=pk)
             form = CommentForm(request.POST)
@@ -409,7 +222,6 @@ class CommentCreate(LoginRequiredMixin, View):
                 comment.post = post
                 comment.author = request.user
                 comment.save()
-
                 context = {"comment": comment}
                 html = render_to_string(
                     "blog_page/comment.html", context, request=request
@@ -424,4 +236,67 @@ class CommentCreate(LoginRequiredMixin, View):
                 {"success": False, "errors": "잘못된 요청 형식입니다."}, status=400
             )
         except Exception as e:
-            return JsonResponse
+            return JsonResponse({"success": False, "errors": str(e)}, status=500)
+
+
+@method_decorator(require_POST, name="dispatch")
+class CommentUpdate(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk, author=request.user)
+        form = CommentForm(request.POST, instance=comment)
+        if form.is_valid():
+            comment = form.save()
+            return JsonResponse(
+                {
+                    "success": True,
+                    "content": comment.content,
+                }
+            )
+        else:
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+
+
+@method_decorator(require_POST, name="dispatch")
+class CommentDelete(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        comment = get_object_or_404(Comment, pk=pk, author=request.user)
+        comment.delete()
+        return JsonResponse({"success": True})
+
+
+@login_required
+@require_POST
+def like_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    like, created = Like.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        like.delete()
+    # 리퍼러 확인
+    referer = request.META.get("HTTP_REFERER")
+    if referer:
+        return redirect(referer)
+    else:
+        # 리퍼러가 없으면 게시물 목록 페이지로 리다이렉트
+        return redirect(reverse("blog_page:post_list"))
+
+
+@login_required
+def toggle_bookmark(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    bookmark, created = Bookmark.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        bookmark.delete()
+        is_bookmarked = False
+    else:
+        is_bookmarked = True
+    return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
+
+
+@login_required
+@require_POST
+def bookmark_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    bookmark, created = Bookmark.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        bookmark.delete()
+    return redirect("blog_page:post_detail", post_id=post.id)

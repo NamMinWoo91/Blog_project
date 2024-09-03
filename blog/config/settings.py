@@ -121,8 +121,9 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR / "static"),  # 루트 디렉토리의 static 폴더
-]
+    BASE_DIR / "static",
+]  # 루트 디렉토리의 static 폴더
+
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
